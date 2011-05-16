@@ -221,6 +221,7 @@ struct _frame_ {
     rlinfo *rlim;		/* rlimits info */
     Int level;			/* plane level */
     bool atomic;		/* within uncaught atomic code */
+    Int ticks;          /* Ticks remaining when funcall starts */ 
 };
 
 extern void	i_init		(char*, int);

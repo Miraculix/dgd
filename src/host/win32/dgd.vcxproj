@@ -50,8 +50,10 @@
     <ClCompile Include="..\..\kfun\extra.c" />
     <ClCompile Include="..\..\kfun\file.c" />
     <ClCompile Include="..\..\kfun\math.c" />
+    <ClCompile Include="..\..\kfun\mdbm.c" />
     <ClCompile Include="..\..\kfun\std.c" />
     <ClCompile Include="..\..\kfun\table.c" />
+    <ClCompile Include="..\..\kfun\xyllomer.c" />
     <ClCompile Include="..\..\lex\macro.c" />
     <ClCompile Include="..\..\lex\ppcontrol.c" />
     <ClCompile Include="..\..\lex\ppstr.c" />
@@ -107,6 +109,7 @@
     <ClInclude Include="..\..\host.h" />
     <ClInclude Include="..\..\interpret.h" />
     <ClInclude Include="..\..\kfun\kfun.h" />
+    <ClInclude Include="..\..\kfun\mdbm.h" />
     <ClInclude Include="..\..\kfun\table.h" />
     <ClInclude Include="..\..\lex\lex.h" />
     <ClInclude Include="..\..\lex\macro.h" />
@@ -127,6 +130,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\comp\parser.y" />
+    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D35360AA-B87E-4F90-AD31-183DAB9EFAF0}</ProjectGuid>
@@ -197,7 +201,7 @@
       <Optimization>Disabled</Optimization>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <PreprocessorDefinitions>WIN32;DEBUG;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;YYFREE=free;YYMALLOC=malloc;;;;;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;DEBUG;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;YYFREE=free;YYMALLOC=malloc;_DEBUG;_CONSOLE;NETWORK_EXTENSIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4127;4310;4244;4018;4389;4245;4702;4146;4709;4706</DisableSpecificWarnings>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
     </ClCompile>
@@ -250,7 +254,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;YYFREE=free;YYMALLOC=malloc;;;;;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;YYFREE=free;YYMALLOC=malloc;NDEBUG;_CONSOLE;NETWORK_EXTENSIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4127;4310;4244;4018;4389;4245;4702;4146;4709;4706</DisableSpecificWarnings>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
     </ClCompile>

@@ -100,3 +100,6 @@ extern object    *otable;
 extern char	 *ocmap;
 extern bool	  obase, swap, dump, stop;
 extern Uint	  odcount;
+
+/* Xyllomer */
+extern uindex o_nobjects(void);

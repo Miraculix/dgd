@@ -14,8 +14,6 @@
 
 # endif
 
-
-
 /* Extras from Xyllomer */
 # ifdef FUNCDEF
 FUNCDEF("inherit_list", kf_inherit_list, p_inherit_list,0)
@@ -26,8 +24,7 @@ char p_inherit_list[] = { C_TYPECHECKED | C_STATIC, 1,0,0,7,T_STRING, T_OBJECT};
  * NAME:        kfun->inherit_list()
  * DESCRIPTION: returns an array of objects inherited. [Array of Strings].
  */
-int kf_inherit_list(f)
-register frame *f;
+int kf_inherit_list(register frame *f)
 {
     object *obj;                /* Here we store the Object which we got as
                                    command line Option */
@@ -81,8 +78,7 @@ char p_function_list[] = { C_TYPECHECKED | C_STATIC, 1,0,0,7,T_STRING, T_OBJECT}
  * NAME:        kfun->function_list()
  * DESCRIPTION: returns the list of functions of an object
  */
-int kf_function_list(f)
-register frame *f;
+int kf_function_list(register frame *f)
 {
     object *obj;
     control *ctrl;
@@ -128,8 +124,7 @@ char pt_object_list[] = { C_TYPECHECKED | C_STATIC, 0,0,0,6,T_INT};
  * DESCRIPTION: dumps a master object list to stderr.
  *              returns number of masterobjects
  */
-int kf_object_list(f)
-register frame *f;
+int kf_object_list(register frame *f)
 {
   register uindex i,masters=0,clones=0;
   register object *o,*top=(object *)NULL;
@@ -178,8 +173,7 @@ char pt_object_list2[] = { C_TYPECHECKED | C_STATIC, 0,0,0,6,T_INT};
  * DESCRIPTION: dumps a master object list to stderr.
  *              returns number of masterobjects
  */
-int kf_object_list2(f)
-register frame *f;
+int kf_object_list2(register frame *f)
 {
   register uindex i,masters=0,clones=0;
   register object *o,*top=(object *)NULL;
@@ -190,13 +184,13 @@ register frame *f;
   if (!fp)
         error("Cannot open dumpfile /ObjectList.csv!");
 
-  fprintf(fp,"\"NumClones\",\"ProgSize\",\"DataSize\",\"File\",\"Compiletime\"\n",P_ctime(buf,P_time()));
+  fprintf(fp,"\"NumClones\",\"ProgSize\",\"Variables\",\"Sectors\",\"File\",\"Compiletime\"\n",P_ctime(buf,P_time()));
   for (i = o_nobjects(), o = otable; i > 0; --i, o++) {
     if ( (o) && (o->chain.name != (char *) NULL)) {
       if (o_control(o) != (control *) NULL)
       {
       	control *ctrl = (control *)o_control(o);
-        fprintf(fp,"%d,%d,%d,\"/%s\",\"%s\"\n",o->cref,ctrl->progsize,ctrl->nvariables,o->chain.name,P_ctime(buf, ctrl->compiled));
+        fprintf(fp,"%d,%d,%d,%d,\"/%s\",\"%s\"\n",o->cref,ctrl->progsize,ctrl->nvariables,ctrl->nsectors,o->chain.name,P_ctime(buf, ctrl->compiled));
       }
     }
   }
@@ -206,4 +200,5 @@ register frame *f;
   return 0;
 }
 # endif
+
 /* End of Xyllomer Special */

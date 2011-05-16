@@ -318,6 +318,9 @@
     <ClInclude Include="..\..\xfloat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\kfun\mdbm.h">
+      <Filter>Source Files\kfun</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -370,5 +373,6 @@
     <None Include="..\..\comp\parser.y">
       <Filter>Source Files\comp</Filter>
     </None>
+    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
 </Project>

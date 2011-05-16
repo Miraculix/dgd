@@ -2197,6 +2197,9 @@ void i_funcall(frame *prev_f, object *obj, array *lwobj, int p_ctrli, int funci,
 
     /* execute code */
     d_get_funcalls(f.ctrl);	/* make sure they are available */
+
+    /* Xyllomer TickTrace */
+    f.ticks = f.prev->rlim->ticks;
     if (f.func->class & C_COMPILED) {
 	Uint l;
 
@@ -2500,7 +2503,7 @@ static array *i_func_trace(frame *f, dataspace *data)
     array *a;
     unsigned short max_args;
 
-    max_args = conf_array_size() - 5;
+    max_args = conf_array_size() - 6;
 
     n = f->nargs;
     args = f->argp + n;
@@ -2508,7 +2511,7 @@ static array *i_func_trace(frame *f, dataspace *data)
 	/* unlikely, but possible */
 	n = max_args;
     }
-    a = arr_new(data, n + 5L);
+    a = arr_new(data, n + 6L);
     v = a->elts;
 
     /* object name */
@@ -2544,13 +2547,15 @@ static array *i_func_trace(frame *f, dataspace *data)
     /* external flag */
     PUT_INTVAL(v, f->external);
     v++;
-
+     PUT_INTVAL( v , f->ticks );
+     v++;
     /* arguments */
     while (n > 0) {
 	*v++ = *--args;
 	i_ref_value(args);
 	--n;
     }
+   
     d_ref_imports(a);
 
     return a;
