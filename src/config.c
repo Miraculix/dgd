@@ -1183,7 +1183,9 @@ static bool conf_includes()
     cputs("# define TRACE_FUNCTION\t2\t/* function name */\012");
     cputs("# define TRACE_LINE\t3\t/* line number */\012");
     cputs("# define TRACE_EXTERNAL\t4\t/* external call flag */\012");
-    cputs("# define TRACE_FIRSTARG\t5\t/* first argument to function */\012");
+    /* Xyllomer */
+    cputs("# define TRACE_TICKS\t5\t/* remaining ticks when entering function*/\012");
+    cputs("# define TRACE_FIRSTARG\t6\t/* first argument to function */\012");
     if (!cclose()) {
 	return FALSE;
     }
