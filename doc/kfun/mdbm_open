@@ -1,0 +1,22 @@
+NAME
+	mdbm_open - open a mdbm database.
+
+SYNOPSIS
+	int mdbm_open(string database_file)
+
+
+DESCRIPTION
+ 	An mdbm database is either a gdbm or ndbm database, depending on the
+	compile time options used in the driver.  Such a database may be
+	manipulated after first opening it by calling this kfun with the name
+	of the database file.  An integer "handle" which is used to refer to 
+	the database after opening is returned, zero indicating failure.
+
+NOTES
+	If the driver is configured to use ndbm databases the name of the
+	database file should be used without ".dir" or ".pag" extensions.
+
+SEE ALSO
+	kfun/mdbm_close, kfun/mdbm_store, kfun/mdbm_exists, kfun/mdbm_fetch,
+	kfun/mdbm_delete, kfun/mdbm_firstkey, kfun/mdbm_nextkey, 
+	kfun/mdbm_reorganize

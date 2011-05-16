@@ -1,0 +1,28 @@
+NAME
+	mdbm_reorganize - Reorganize a mdbm database file.
+
+SYNOPSIS
+	int mdbm_reorganize(int handle)
+
+
+DESCRIPTION
+	In general the file associated with a mdbm database will not shrink
+	after key/value deletions (although the space will be reused for
+	future insertions).  After a large number of deletions this kfun
+	may be called to shrink the size of that associated file. 
+	The database must have been previously opened by a call to the
+	mdbm_open kfun.  The "handle" returned by that kfun is used as an 
+	argument to this kfun.
+	Zero is returned to indicate failure, one to indicate success.
+
+NOTES
+	The execution of this function is expensive and it should be used
+	sparingly.
+
+	This kfun is only available is the mdbm package has been compiled to
+	use gdbm rather than ndbm databases.
+
+SEE ALSO
+	kfun/mdbm_open, kfun/mdbm_close, kfun/mdbm_store, kfun/mdbm_exists,
+	kfun/mdbm_fetch, kfun/mdbm_delete, kfun/mdbm_firstkey, 
+	kfun/mdbm_nextkey

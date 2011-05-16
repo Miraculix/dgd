@@ -1483,3 +1483,13 @@ void finish()
 {
     oplane->stop = TRUE;
 }
+
+/* Xyllomer .. must be here because else we have no access */
+/*
+ * NAME:        object->nobjects()
+ * DESCRIPTION: returns the number of objects in table
+ */
+uindex o_nobjects()
+{
+  return oplane->nobjects;
+}

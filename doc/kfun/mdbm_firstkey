@@ -1,0 +1,20 @@
+NAME
+	mdbm_firstkey - Get the "first" key from a mdbm database
+
+SYNOPSIS
+	string mdbm_firstkey(int handle)
+
+
+DESCRIPTION
+	Returns the "first" the key from a mdbm database that has previously 
+	been opened by a call to the mdbm_open kfun.  
+	The "handle" returned by that kfun is used as an argument to this kfun.
+	Zero is returned to indicate failure.
+
+NOTES
+	The order of keys in a database isn't based on anything interesting.
+
+SEE ALSO
+	kfun/mdbm_open, kfun/mdbm_close, kfun/mdbm_store, kfun/mdbm_exists,
+	kfun/mdbm_fetch, kfun/mdbm_delete, kfun/mdbm_nextkey, 
+	kfun/mdbm_reorganize

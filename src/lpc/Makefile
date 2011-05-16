@@ -26,8 +26,9 @@ CC=	gcc
 DMAKE=	make
 YACC=	yacc
 PRECOMP=../comp/a.out
-CONFIG=	../../mud.dgd
-MUDLIB=	../../mud
+CONFIG=/home/xyllomer/etc/lpmud
+MUDLIB=/home/xyllomer/lib/xyllomer
+#PREFILES:=precomp
 
 #SRC=	driver.c auto.c objregd.c rsrcd.c accessd.c userd.c \
 #	api_objreg.c api_rsrc.c api_access.c api_user.c api_tls.c \
@@ -41,75 +42,19 @@ SRC=
 #	rsrc.o telnet.o binary.o user.o wiztool.o
 OBJ=
 
-dgd:	$(OBJ) lpc.o
-	@for i in $(OBJ) lpc.o; do echo lpc/$$i; done > dgd
-
+dgd: $(OBJ) $(PRECOMP) precompile lpc.o
+	
 lint:
 	lint $(LINTFLAGS) $(CFLAGS) lpc.c
 
+precompile:
+	rm -rf c/*;rm -f dgd;rm -f list;for xx in `cat precomp`; do mkdir -p c/$$xx;$(PRECOMP) $(CONFIG) $$xx c/$$xx/precompile.c ;echo \#include \"c/$$xx/precompile.c\" >> list;echo lpc/c/$$xx/precompile.o >> dgd;echo $$xx;$(CC) -c $(CPPFLAGS) $(CFLAGS) -o c/$$xx/precompile.o c/$$xx/precompile.c;  done;echo "lpc/lpc.o" >>dgd;
+	
 #$(SRC):	$(PRECOMP)
 
 $(PRECOMP):
 	cd ../comp; $(DMAKE) 'DMAKE=$(DMAKE)' 'CC=$(CC)' 'CCFLAGS=$(CCFLAGS)' \
 			     'YACC=$(YACC)' 'LIBS=$(LIBS)' a.out
-
-driver.c: $(MUDLIB)/kernel/sys/driver.c
-	$(PRECOMP) $(CONFIG) /kernel/sys/driver.c $@
-
-auto.c:	$(MUDLIB)/kernel/lib/auto.c
-	$(PRECOMP) $(CONFIG) /kernel/lib/auto.c $@
-
-objregd.c: $(MUDLIB)/kernel/sys/objregd.c auto.c
-	$(PRECOMP) $(CONFIG) /kernel/sys/objregd.c $@
-
-rsrcd.c: $(MUDLIB)/kernel/sys/rsrcd.c auto.c
-	$(PRECOMP) $(CONFIG) /kernel/sys/rsrcd.c $@
-
-accessd.c: $(MUDLIB)/kernel/sys/accessd.c auto.c
-	$(PRECOMP) $(CONFIG) /kernel/sys/accessd.c $@
-
-userd.c: $(MUDLIB)/kernel/sys/userd.c auto.c
-	$(PRECOMP) $(CONFIG) /kernel/sys/userd.c $@
-
-api_objreg.c: $(MUDLIB)/kernel/lib/api/objreg.c auto.c
-	$(PRECOMP) $(CONFIG) /kernel/lib/api/objreg.c $@
-
-api_rsrc.c: $(MUDLIB)/kernel/lib/api/rsrc.c auto.c
-	$(PRECOMP) $(CONFIG) /kernel/lib/api/rsrc.c $@
-
-api_access.c: $(MUDLIB)/kernel/lib/api/access.c auto.c
-	$(PRECOMP) $(CONFIG) /kernel/lib/api/access.c $@
-
-api_user.c: $(MUDLIB)/kernel/lib/api/user.c auto.c
-	$(PRECOMP) $(CONFIG) /kernel/lib/api/user.c $@
-
-api_tls.c: $(MUDLIB)/kernel/lib/api/tls.c auto.c
-	$(PRECOMP) $(CONFIG) /kernel/lib/api/tls.c $@
-
-lib_connection.c: $(MUDLIB)/kernel/lib/connection.c auto.c
-	$(PRECOMP) $(CONFIG) /kernel/lib/connection.c $@
-
-lib_user.c: $(MUDLIB)/kernel/lib/user.c auto.c
-	$(PRECOMP) $(CONFIG) /kernel/lib/user.c $@
-
-lib_wiztool.c: $(MUDLIB)/kernel/lib/wiztool.c auto.c \
-	       api_rsrc.c api_access.c api_user.c
-	$(PRECOMP) $(CONFIG) /kernel/lib/wiztool.c $@
-
-rsrc.c: $(MUDLIB)/kernel/obj/rsrc.c auto.c
-	$(PRECOMP) $(CONFIG) /kernel/obj/rsrc.c $@
-
-telnet.c: $(MUDLIB)/kernel/obj/telnet.c auto.c lib_connection.c
-	$(PRECOMP) $(CONFIG) /kernel/obj/telnet.c $@
-
-binary.c: $(MUDLIB)/kernel/obj/binary.c auto.c lib_connection.c
-	$(PRECOMP) $(CONFIG) /kernel/obj/binary.c $@
-
-user.c: $(MUDLIB)/kernel/obj/user.c auto.c lib_user.c api_rsrc.c api_user.c
-	$(PRECOMP) $(CONFIG) /kernel/obj/user.c $@
-
-wiztool.c: $(MUDLIB)/kernel/obj/wiztool.c auto.c lib_wiztool.c
-	$(PRECOMP) $(CONFIG) /kernel/obj/wiztool.c $@
 
 clean:
 	rm -f dgd $(SRC) $(OBJ) lpc.o

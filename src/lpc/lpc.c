@@ -25,12 +25,16 @@
 # include "csupport.h"
 
 # define TAG(t)	extern precomp t;
+#ifdef DGD_PRECOMP
 # include "list"
+#endif
 # undef TAG
 
 precomp *precompiled[] = {
 # define TAG(t)	&t,
+#ifdef DGD_PRECOMP
 # include "list"
+#endif
 # undef TAG
     (precomp *) NULL	/* terminator */
 };

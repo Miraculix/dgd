@@ -172,6 +172,12 @@
     <ClCompile Include="windgd.c">
       <Filter>Source Files\host\win32</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\kfun\mdbm.c">
+      <Filter>Source Files\kfun</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\kfun\xyllomer.c">
+      <Filter>Source Files\kfun</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\alloc.h">

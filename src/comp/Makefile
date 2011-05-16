@@ -16,12 +16,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 HOST=	DARWIN
-DEFINES=-D$(HOST)
+DEFINES=-D$(HOST) -DNETWORK_EXTENSIONS
 DEBUG=	-O -g
 CCFLAGS=$(DEFINES) $(DEBUG)
 CFLAGS=	-I. -I.. -I../lex -I../parser -I../kfun $(CCFLAGS)
 LDFLAGS=
-LIBS=
+LIBS=-lgdbm
 LINTFLAGS=-abcehpruz
 CC=	gcc
 LD=	$(CC)
@@ -52,7 +52,7 @@ always:
 lint:
 	lint $(LINTFLAGS) $(CFLAGS) $(SRC)
 
-dgd:	$(DGDOBJ)
+dgd:	$(DGDOBJ) a.out
 	@for i in $(DGDOBJ); do echo comp/$$i; done > dgd
 
 parser.c parser.h: parser.y

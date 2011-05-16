@@ -1,0 +1,25 @@
+NAME
+	mdbm_nextkey - Get the "next" key from a mdbm database
+
+SYNOPSIS
+	string mdbm_nextkey(int handle, string key)
+
+
+DESCRIPTION
+	Returns the "next" key after the given key in an mdbm database 
+	has previously been opened by a call to the mdbm_open kfun.  
+	The "handle" returned by that kfun is used as an argument to this kfun.
+	Zero is returned to indicate failure.
+
+NOTES
+	The order of keys in a database isn't based on anything interesting.
+
+	Deleting a key changes the order of the keys in a database, so be
+	careful of such changes in the midst of firstkey/nextkey loops over
+	the database as such a change may mean that all keys are not visited
+	in the loop.
+
+SEE ALSO
+	kfun/mdbm_open, kfun/mdbm_close, kfun/mdbm_store, kfun/mdbm_exists,
+	kfun/mdbm_fetch, kfun/mdbm_delete, kfun/mdbm_firstkey, 
+	kfun/mdbm_reorganize

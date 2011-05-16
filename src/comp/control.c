@@ -1520,6 +1520,7 @@ int ctrl_ninherits()
  */
 bool ctrl_chkfuncs()
 {
+	#ifdef STRICT_PROTO
     if (nundefs != 0) {
 	cfunc *f;
 	unsigned short i;
@@ -1537,7 +1538,7 @@ bool ctrl_chkfuncs()
 	}
 	return FALSE;
     }
-
+#endif
     if (nfclash != 0 || privinherit) {
 	hte **t;
 	unsigned short sz;

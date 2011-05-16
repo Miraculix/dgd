@@ -493,6 +493,7 @@ bool c_inherit(char *file, node *label, int priv)
 	    c_error("illegal inherit from driver object");
 	    return FALSE;
 	}
+	
 	obj = o_find(file, OACC_READ);
 	if (obj == (object *) NULL) {
 	    obj = c_compile(f, file, (object *) NULL, (string **) NULL, 0,
@@ -511,6 +512,7 @@ bool c_inherit(char *file, node *label, int priv)
 
 	strncpy(buf, file, STRINGSZ - 1);
 	buf[STRINGSZ - 1] = '\0';
+	
 	if (call_driver_object(f, "inherit_program", 3)) {
 	    if (f->sp->type == T_OBJECT) {
 		obj = OBJR(f->sp->oindex);
@@ -565,7 +567,7 @@ object *c_compile(frame *f, char *file, object *obj, string **strs,
 	int n;
 
 	for (cc = current, n = 0; cc != (context *) NULL; cc = cc->prev, n++) {
-	    if (strcmp(file, cc->file) == 0) {
+	    if (strcmp(file, cc->file) == 0) {		
 		error("Cycle in inheritance from \"/%s.c\"", current->file);
 	    }
 	}
@@ -577,7 +579,7 @@ object *c_compile(frame *f, char *file, object *obj, string **strs,
 	ctrl_clear();
 	c_clear();
     } else if (current != (context *) NULL) {
-	error("Compilation within compilation");
+	 error("Compilation within compilation curr = %s  this = %s",current->file,file);
     }
 
     c.file = file;

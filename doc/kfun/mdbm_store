@@ -1,0 +1,22 @@
+NAME
+	mdbm_store - store a key/value pair in a mdbm database.
+
+SYNOPSIS
+	varargs int mdbm_store(int handle, string key, string value, int flag)
+
+
+DESCRIPTION
+	Store a key/value pair in a mdbm database that has previously been 
+	opened by a call to the mdbm_open kfun.  The "handle" returned by 
+	that kfun is used as an argument to this kfun.  
+
+	If the key already exists in the mdbm database then by default its
+	previous value is replaced by the value passed to this kfun.  If the
+	optional flag is present and non-zero the value is not replaced.
+
+	Zero is returned to indicate failure, one to indicate success.
+
+SEE ALSO
+	kfun/mdbm_open, kfun/mdbm_close, kfun/mdbm_exists, kfun/mdbm_fetch,
+	kfun/mdbm_delete, kfun/mdbm_firstkey, kfun/mdbm_nextkey, 
+	kfun/mdbm_reorganize

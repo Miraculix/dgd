@@ -366,7 +366,8 @@ static int gc()
 	    tb->inbuf--;
 	    c = UCHAR(*(tb->p)++);
 	}
-
+    if ( c == 0x13 )
+    continue;
 	if (c == LF && tb == ibuffer) {
 	    ibuffer->line++;
 	    if (!backslash) {
