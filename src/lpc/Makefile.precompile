@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 HOST=	DARWIN
-DEFINES=-D$(HOST)
+DEFINES=-D$(HOST) -DDGD_PRECOMP
 DEBUG=	-O -g
 CCFLAGS=$(DEFINES) $(DEBUG)
 CFLAGS=	-I. -I.. -I../comp $(CCFLAGS)
@@ -43,7 +43,7 @@ SRC=
 #	rsrc.o telnet.o binary.o user.o wiztool.o
 OBJ=
 
-dgd: $(OBJ) $(PRECOMP) noprecompile lpc.o
+dgd: $(OBJ) $(PRECOMP) precompile lpc.o
 	
 lint:
 	lint $(LINTFLAGS) $(CFLAGS) lpc.c
