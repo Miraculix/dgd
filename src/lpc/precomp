@@ -63,6 +63,7 @@ std/heap.c
 std/coins.c
 d/System/guilds/spell_obj/component.c
 std/herb.c
+std/living/output.c
 std/living/carry.c
 std/living/cmdhooks.c
 std/living/combat_liv.c
