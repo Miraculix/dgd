@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 HOST=	DARWIN
-DEFINES=-D$(HOST) -DDGD_PRECOMP
+DEFINES=-D$(HOST) -DDGD_PRECOMP # These might be ignored, see ../Makefile! --Tarjan
 DEBUG=	-O -g
 CCFLAGS=$(DEFINES) $(DEBUG) $(DEFINES)
 CFLAGS=	-I. -I.. -I../comp $(CCFLAGS)
