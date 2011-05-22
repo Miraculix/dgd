@@ -130,7 +130,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\comp\parser.y" />
-    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D35360AA-B87E-4F90-AD31-183DAB9EFAF0}</ProjectGuid>
