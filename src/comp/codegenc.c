@@ -1,6 +1,7 @@
 /*
  * This file is part of DGD, http://dgd-osr.sourceforge.net/
  * Copyright (C) 1993-2010 Dworkin B.V.
+ * Copyright (C) 2010-2011 DGD Authors (see the file Changelog for details)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -68,13 +69,13 @@ static int tmpval()
  */
 static char *local(int n)
 {
-    static char buffer[16];
+    static char buffer[32];
 
     n = nparam - n - 1;
     if (n < 0) {
-	sprintf(buffer, "(f->fp - %d)", -n);
+	sprintf(buffer, "lpc_frame_local(f, %d)", -n);
     } else {
-	sprintf(buffer, "(f->argp + %d)", n);
+	sprintf(buffer, "lpc_frame_arg(f, %d)", n);
     }
     return buffer;
 }
@@ -206,7 +207,7 @@ static void cg_fetch(node *n)
     cg_lvalue(n, (node *) NULL);
     output(", i_dup(f), ");
     if (n->type == N_CAST) {
-	cg_cast("f->sp", n->mod, n->class);
+	cg_cast("lpc_frame_top_value(f)", n->mod, n->class);
 	comma();
     }
 }
@@ -220,13 +221,13 @@ static void cg_iasgn(node *n, char *op, int i, bool direct)
     if (i < 0) {
 	/* assignment on stack */
 	if (n->type == N_INT) {
-	    output("f->sp->u.number %s ", op);
+	    output("lpc_frame_top_int(f) %s ", op);
 	    cg_iexpr(n, TRUE);
 	} else {
 	    i = tmpval();
 	    output("tv[%d] = ", i);
 	    cg_iexpr(n, TRUE);
-	    output(", f->sp->u.number %s tv[%d]", op, i);
+	    output(", lpc_frame_top_int(f) %s tv[%d]", op, i);
 	}
     } else {
 	/* assignment to var */
@@ -273,12 +274,12 @@ static void cg_ifasgnop(node *n, char *op, bool direct)
 	cg_fetch(n->l.left);
 	n = n->r.right;
 	if (n->type == N_INT) {
-	    output("f->sp->u.number = %s(f->sp->u.number, ", op);
+	    output("f->sp->u.number = %s(lpc_frame_top_int(f), ", op);
 	    cg_iexpr(n, TRUE);
 	    output("), lpc_frame_store_int(f)");
 	} else {
 	    i = tmpval();
-	    output("tv[%d] = %s(f->sp->u.number, ", i, op);
+	    output("tv[%d] = %s(lpc_frame_top_int(f), ", i, op);
 	    cg_iexpr(n, TRUE);
 	    output("), f->sp->u.number = tv[%d], lpc_frame_store_int(f)", op,
 		   i);
@@ -313,33 +314,46 @@ static void cg_iexpr(node *n, int direct)
     output("(");
     switch (n->type) {
     case N_ADD:
+    case N_ADD_FLOAT:
     case N_ADD_EQ:
     case N_ADD_EQ_1:
+    case N_ADD_EQ_FLOAT:
+    case N_ADD_EQ_1_FLOAT:
     case N_AGGR:
     case N_AND:
     case N_AND_EQ:
     case N_ASSIGN:
     case N_CATCH:
     case N_DIV:
+    case N_DIV_FLOAT:
     case N_DIV_EQ:
+    case N_DIV_EQ_FLOAT:
     case N_EQ:
+    case N_EQ_FLOAT:
     case N_FLOAT:
     case N_FUNC:
     case N_GE:
+    case N_GE_FLOAT:
     case N_GLOBAL:
     case N_GT:
+    case N_GT_FLOAT:
     case N_INDEX:
     case N_INSTANCEOF:
     case N_LE:
+    case N_LE_FLOAT:
     case N_LSHIFT:
     case N_LSHIFT_EQ:
     case N_LT:
+    case N_LT_FLOAT:
     case N_LVALUE:
     case N_MOD:
     case N_MOD_EQ:
     case N_MULT:
+    case N_MULT_FLOAT:
     case N_MULT_EQ:
+    case N_MULT_EQ_FLOAT:
     case N_NE:
+    case N_NE_FLOAT:
     case N_NIL:
     case N_OR:
     case N_OR_EQ:
@@ -348,8 +362,11 @@ static void cg_iexpr(node *n, int direct)
     case N_RSHIFT_EQ:
     case N_STR:
     case N_SUB:
+    case N_SUB_FLOAT:
     case N_SUB_EQ:
     case N_SUB_EQ_1:
+    case N_SUB_EQ_FLOAT:
+    case N_SUB_EQ_1_FLOAT:
     case N_SUM:
     case N_SUM_EQ:
     case N_TOFLOAT:
@@ -358,7 +375,9 @@ static void cg_iexpr(node *n, int direct)
     case N_XOR:
     case N_XOR_EQ:
     case N_MIN_MIN:
+    case N_MIN_MIN_FLOAT:
     case N_PLUS_PLUS:
+    case N_PLUS_PLUS_FLOAT:
 	if (direct) {
 	    cg_expr(n, INTVAL);
 	} else {
@@ -638,12 +657,12 @@ static void cg_asgnop(node *n, char *op)
 	comma();
 	kfun(op);
 	comma();
-	cg_cast("f->sp", T_INT, (string *) NULL);
+	cg_cast("lpc_frame_top_value(f)", T_INT, (string *) NULL);
 	comma();
 	if (catch_level != 0) {
 	    output("%s->u.number = ", local((int) n->l.left->r.number));
 	}
-	output("ivar%d = f->sp->u.number", vars[n->l.left->r.number]);
+	output("ivar%d = lpc_frame_top_int(f)", vars[n->l.left->r.number]);
     } else {
 	cg_fetch(n->l.left);
 	cg_expr(n->r.right, PUSH);
@@ -949,8 +968,30 @@ static void cg_expr(node *n, int state)
 	kfun("add");
 	break;
 
+    case N_ADD_FLOAT:
+	cg_expr(n->l.left, PUSH);
+	comma();
+	if (n->r.right->type == N_FLOAT) {
+	    if (NFLT_ISONE(n->r.right)) {
+		kfun("add1_float");
+		break;
+	    }
+	    if (NFLT_ISMONE(n->r.right)) {
+		kfun("sub1_float");
+		break;
+	    }
+	}
+	cg_expr(n->r.right, PUSH);
+	comma();
+	kfun("add_float");
+	break;
+
     case N_ADD_EQ:
 	cg_asgnop(n, "add");
+	break;
+
+    case N_ADD_EQ_FLOAT:
+	cg_asgnop(n, "add_float");
 	break;
 
     case N_ADD_EQ_1:
@@ -959,6 +1000,12 @@ static void cg_expr(node *n, int state)
 	store();
 	break;
 	
+    case N_ADD_EQ_1_FLOAT:
+	cg_fetch(n->l.left);
+	kfun("add1_float");
+	store();
+	break;
+
     case N_AGGR:
 	if (n->mod == T_MAPPING) {
 	    output("i_map_aggregate(f, %u)", cg_map_aggr(n->l.left));
@@ -1010,7 +1057,7 @@ static void cg_expr(node *n, int state)
     case N_CAST:
 	cg_expr(n->l.left, PUSH);
 	comma();
-	cg_cast("f->sp", n->mod, n->class);
+	cg_cast("lpc_frame_top_value(f)", n->mod, n->class);
 	break;
 
     case N_CATCH:
@@ -1061,13 +1108,27 @@ static void cg_expr(node *n, int state)
 	kfun("div");
 	break;
 
+    case N_DIV_FLOAT:
+	cg_binop(n);
+	kfun("div_float");
+	break;
+
     case N_DIV_EQ:
 	cg_asgnop(n, "div");
+	break;
+
+    case N_DIV_EQ_FLOAT:
+	cg_asgnop(n, "div_float");
 	break;
 
     case N_EQ:
 	cg_binop(n);
 	kfun("eq");
+	break;
+
+    case N_EQ_FLOAT:
+	cg_binop(n);
+	kfun("eq_float");
 	break;
 
     case N_FLOAT:
@@ -1157,6 +1218,11 @@ static void cg_expr(node *n, int state)
 	kfun("ge");
 	break;
 
+    case N_GE_FLOAT:
+	cg_binop(n);
+	kfun("ge_float");
+	break;
+
     case N_GLOBAL:
 	output("i_global(f, %d, %d/*%s*/)", ((int) n->r.number >> 8) & 0xff,
 	       ((int) n->r.number) & 0xff, n->l.left->l.string->text);
@@ -1165,6 +1231,11 @@ static void cg_expr(node *n, int state)
     case N_GT:
 	cg_binop(n);
 	kfun("gt");
+	break;
+
+    case N_GT_FLOAT:
+	cg_binop(n);
+	kfun("gt_float");
 	break;
 
     case N_INDEX:
@@ -1192,6 +1263,11 @@ static void cg_expr(node *n, int state)
     case N_LE:
 	cg_binop(n);
 	kfun("le");
+	break;
+
+    case N_LE_FLOAT:
+	cg_binop(n);
+	kfun("le_float");
 	break;
 
     case N_LOCAL:
@@ -1249,6 +1325,11 @@ static void cg_expr(node *n, int state)
 	kfun("lt");
 	break;
 
+    case N_LT_FLOAT:
+	cg_binop(n);
+	kfun("lt_float");
+	break;
+
     case N_LVALUE:
 	cg_lvalue(n->l.left, n->l.left);
 	break;
@@ -1267,13 +1348,27 @@ static void cg_expr(node *n, int state)
 	kfun("mult");
 	break;
 
+    case N_MULT_FLOAT:
+	cg_binop(n);
+	kfun("mult_float");
+	break;
+
     case N_MULT_EQ:
 	cg_asgnop(n, "mult");
+	break;
+
+    case N_MULT_EQ_FLOAT:
+	cg_asgnop(n, "mult_float");
 	break;
 
     case N_NE:
 	cg_binop(n);
 	kfun("ne");
+	break;
+
+    case N_NE_FLOAT:
+	cg_binop(n);
+	kfun("ne_float");
 	break;
 
     case N_NIL:
@@ -1401,13 +1496,47 @@ static void cg_expr(node *n, int state)
 	}
 	break;
 
+    case N_SUB_FLOAT:
+	if (n->l.left->type == N_FLOAT && NFLT_ISZERO(n->l.left)) {
+	    cg_expr(n->r.right, PUSH);
+	    comma();
+	    kfun("umin_float");
+	} else {
+	    cg_expr(n->l.left, PUSH);
+	    comma();
+	    if (n->r.right->type == N_FLOAT) {
+		if (NFLT_ISONE(n->r.right)) {
+		    kfun("sub1_float");
+		    break;
+		}
+		if (NFLT_ISMONE(n->r.right)) {
+		    kfun("add1_float");
+		    break;
+		}
+	    }
+	    cg_expr(n->r.right, PUSH);
+	    comma();
+	    kfun("sub_float");
+	}
+	break;
+
     case N_SUB_EQ:
 	cg_asgnop(n, "sub");
+	break;
+
+    case N_SUB_EQ_FLOAT:
+	cg_asgnop(n, "sub_float");
 	break;
 
     case N_SUB_EQ_1:
 	cg_fetch(n->l.left);
 	kfun("sub1");
+	store();
+	break;
+
+    case N_SUB_EQ_1_FLOAT:
+	cg_fetch(n->l.left);
+	kfun("sub1_float");
 	store();
 	break;
 
@@ -1494,6 +1623,14 @@ static void cg_expr(node *n, int state)
 	}
 	break;
 
+    case N_MIN_MIN_FLOAT:
+	cg_fetch(n->l.left);
+	kfun("sub1_float");
+	store();
+	comma();
+	kfun("add1_float");
+	break;
+
     case N_PLUS_PLUS:
 	cg_fetch(n->l.left);
 	kfun("add1");
@@ -1504,6 +1641,14 @@ static void cg_expr(node *n, int state)
 	} else {
 	    kfun("sub1");
 	}
+	break;
+
+    case N_PLUS_PLUS_FLOAT:
+	cg_fetch(n->l.left);
+	kfun("add1_float");
+	store();
+	comma();
+	kfun("sub1_float");
 	break;
 
 # ifdef DEBUG
@@ -1698,7 +1843,7 @@ static void cg_switch_int(node *n)
 	cg_expr(n->r.right->l.left, PUSH);
 	output(";\nif (f->sp->type != T_INT) { i_del_value(f->sp++);");
 	output(" goto sw%d; }", ++swcount);
-	output("\nswitch ((f->sp++)->u.number) {\n");
+	output("\nswitch (lpc_frame_pop_int(f)) {\n");
 	switch_table[0] = swcount;
     }
 
@@ -1765,7 +1910,7 @@ static void cg_switch_range(node *n)
 	cg_expr(n->r.right->l.left, PUSH);
 	output(";\nif (f->sp->type != T_INT) { i_del_value(f->sp++);");
 	output(" goto sw%d; }", ++swcount);
-	output("\nswitch (lpc_runtime_rswitch((f->sp++)->u.number, swtab, ");
+	output("\nswitch (lpc_runtime_rswitch(lpc_frame_pop_int(f), swtab, ");
 	output("%d)) {\n", size - 1);
 	switch_table[0] = swcount;
     }

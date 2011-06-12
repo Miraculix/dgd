@@ -1,6 +1,7 @@
 /*
  * This file is part of DGD, http://dgd-osr.sourceforge.net/
  * Copyright (C) 1993-2010 Dworkin B.V.
+ * Copyright (C) 2010-2011 DGD Authors (see the file Changelog for details)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -126,7 +127,7 @@ typedef struct { char fill; Int i;	} aligni;
 typedef struct { char fill; char *p;	} alignp;
 typedef struct { char c;		} alignz;
 
-# define FORMAT_VERSION	12
+# define FORMAT_VERSION	13
 
 # define DUMP_VALID	0	/* valid dump flag */
 # define DUMP_VERSION	1	/* dump file version number */
@@ -136,7 +137,7 @@ typedef struct { char c;		} alignz;
 # define DUMP_TYPE	4	/* first XX bytes, dump type */
 # define DUMP_STARTTIME	28	/* start time */
 # define DUMP_ELAPSED	32	/* elapsed time */
-# define DUMP_HEADERSZ	40	/* header size */
+# define DUMP_HEADERSZ	42	/* header size */
 # define DUMP_VSTRING	42	/* version string */
 
 typedef char dumpinfo[64];
@@ -160,6 +161,8 @@ static dumpinfo header;		/* dumpfile header */
 # define zero2	(header[37])	/* reserved (0) */
 # define zero3	(header[38])	/* reserved (0) */
 # define zero4	(header[39])	/* reserved (0) */
+# define zero5	(header[40])	/* reserved (0) */
+# define zero6	(header[41])	/* reserved (0) */
 static int ualign;		/* align(uindex) */
 static int talign;		/* align(ssizet) */
 static int dalign;		/* align(sector) */
@@ -183,6 +186,8 @@ static dumpinfo rheader;	/* restored header */
 # define rzero2	 (rheader[37])	/* reserved (0) */
 # define rzero3	 (rheader[38])	/* reserved (0) */
 # define rzero4	 (rheader[39])	/* reserved (0) */
+# define rzero5	 (rheader[40])	/* reserved (0) */
+# define rzero6	 (rheader[41])	/* reserved (0) */
 static int rusize;		/* sizeof(uindex) */
 static int rtsize;		/* sizeof(ssizet) */
 static int rdsize;		/* sizeof(sector) */
@@ -297,7 +302,7 @@ void conf_dump()
 static void conf_restore(int fd)
 {
     bool conv_co1, conv_co2, conv_co3, conv_lwo, conv_ctrl1, conv_ctrl2,
-    conv_data, conv_type, conv_inherit;
+    conv_data, conv_type, conv_inherit, conv_time;
     unsigned int secsize;
 
     if (P_read(fd, rheader, DUMP_HEADERSZ) != DUMP_HEADERSZ ||
@@ -306,7 +311,7 @@ static void conf_restore(int fd)
 	error("Bad or incompatible restore file header");
     }
     conv_co1 = conv_co2 = conv_co3 = conv_lwo = conv_ctrl1 = conv_ctrl2 =
-	       conv_data = conv_type = conv_inherit = FALSE;
+	       conv_data = conv_type = conv_inherit = conv_time = FALSE;
     if (rheader[DUMP_VERSION] < 3) {
 	conv_co1 = TRUE;
     }
@@ -337,11 +342,14 @@ static void conf_restore(int fd)
     }
     if (rheader[DUMP_VERSION] < 12) {
 	memmove(rheader + 20, rheader + 12, 18);
-	rzero3 = rzero4 = 0;
+	rzero3 = rzero4 = rzero5 = rzero6 = 0;
+    }
+    if (rheader[DUMP_VERSION] < 13) {
+	conv_time = TRUE;
     }
     rheader[DUMP_VERSION] = FORMAT_VERSION;
-    if (memcmp(header, rheader, DUMP_TYPE) != 0 ||
-	rzero1 != 0 || rzero2 != 0 || rzero3 != 0 || rzero4 != 0) {
+    if (memcmp(header, rheader, DUMP_TYPE) != 0 || rzero1 != 0 || rzero2 != 0 ||
+	rzero3 != 0 || rzero4 != 0 || rzero5 != 0 || rzero6 != 0) {
 	error("Bad or incompatible restore file header");
     }
 
@@ -363,6 +371,13 @@ static void conf_restore(int fd)
     if (resize == 0) {
 	resize = sizeof(char);			/* backward compat */
     }
+    if ((rcalign >> 4) != 0) {
+	error("Cannot restore arrsize > 2");
+    }
+    if ((rsalign >> 4) != 0) {
+	error("Cannot restore Int size > 4");
+    }
+    rialign &= 0xf;
     rualign = (rusize == sizeof(short)) ? rsalign : rialign;
     rtalign = (rtsize == sizeof(short)) ? rsalign : rialign;
     rdalign = (rdsize == sizeof(short)) ? rsalign : rialign;
@@ -386,10 +401,10 @@ static void conf_restore(int fd)
     kf_restore(fd, conv_co1);
     o_restore(fd, (uindex) ((conv_lwo) ? 1 << (rusize * 8 - 1) : 0));
     d_init_conv(conv_ctrl1, conv_ctrl2, conv_data, conv_co1, conv_co2,
-		conv_type, conv_inherit);
+		conv_type, conv_inherit, conv_time);
     pc_restore(fd, conv_inherit);
     boottime = P_time();
-    co_restore(fd, boottime, conv_co2, conv_co3);
+    co_restore(fd, boottime, conv_co2, conv_co3, conv_time);
 }
 
 /*
@@ -1029,6 +1044,8 @@ static bool cclose()
 static bool conf_includes()
 {
     char buf[BUF_SIZE], buffer[STRINGSZ];
+    register int i;
+    register char *p;
 
     /* create status.h file */
     obuf = buf;
@@ -1074,6 +1091,8 @@ static bool conf_includes()
     cputs("# define O_CALLOUTS\t4\t/* callouts in object */\012");
     cputs("# define O_INDEX\t5\t/* unique ID for master object */\012");
     cputs("# define O_UNDEFINED\t6\t/* undefined functions */\012");
+    cputs("# define O_INHERITED\t7\t/* object inherited? */\012");
+    cputs("# define O_INSTANTIATED\t8\t/* object instantiated? */\012");
 
     cputs("\012# define CO_HANDLE\t0\t/* callout handle */\012");
     cputs("# define CO_FUNCTION\t1\t/* function name */\012");
@@ -1139,7 +1158,7 @@ static bool conf_includes()
     cputs("# define FLT_RADIX\t2\t\t\t/* binary */\012");
     cputs("# define FLT_ROUNDS\t1\t\t\t/* round to nearest */\012");
     cputs("# define FLT_EPSILON\t7.2759576142E-12\t/* smallest x: 1.0 + x != 1.0 */\012");
-    cputs("# define FLT_DIG\t10\t\t\t/* decimal digits of precision*/\012");
+    cputs("# define FLT_DIG\t11\t\t\t/* decimal digits of precision*/\012");
     cputs("# define FLT_MANT_DIG\t36\t\t\t/* binary digits of precision */\012");
     cputs("# define FLT_MIN\t2.22507385851E-308\t/* positive minimum */\012");
     cputs("# define FLT_MIN_EXP\t(-1021)\t\t\t/* minimum binary exponent */\012");
@@ -1165,13 +1184,63 @@ static bool conf_includes()
     cputs("# define TRACE_LINE\t3\t/* line number */\012");
     cputs("# define TRACE_EXTERNAL\t4\t/* external call flag */\012");
     cputs("# define TRACE_FIRSTARG\t5\t/* first argument to function */\012");
+    if (!cclose()) {
+	return FALSE;
+    }
+
+    /* create kfun.h file */
+    sprintf(buffer, "%s/kfun.h", dirs[0]);
+    if (!copen(buffer)) {
+	return FALSE;
+    }
+    cputs("/*\012 * This file defines the version of each supported kfun.  ");
+    cputs("It is automatically\012 * generated by DGD on ");
+    cputs("startup.\012 */\012\012");
+    for (i = KF_BUILTINS; i < nkfun; i++) {
+	if (!isdigit(kftab[i].name[0])) {
+	    sprintf(buffer, "# define kf_%s\t\t%d\012", kftab[i].name,
+		    kftab[i].version);
+	    for (p = buffer + 9; *p != '\0'; p++) {
+		*p = toupper(*p);
+	    }
+	    cputs(buffer);
+	}
+    }
+    cputs("\012\012/*\012 * Supported ciphers and hashing algorithms.\012 */");
+    cputs("\012\012# define ENCRYPT_CIPHERS\t");
+    for (i = 0; ; ) {
+	sprintf(buffer, "\"%s\"", kfenc[i].name);
+	cputs(buffer);
+	if (++i == ne) {
+	    break;
+	}
+	cputs(", ");
+    }
+    cputs("\012# define DECRYPT_CIPHERS\t");
+    for (i = 0; ; ) {
+	sprintf(buffer, "\"%s\"", kfdec[i].name);
+	cputs(buffer);
+	if (++i == nd) {
+	    break;
+	}
+	cputs(", ");
+    }
+    cputs("\012# define HASH_ALGORITHMS\t");
+    for (i = 0; ; ) {
+	sprintf(buffer, "\"%s\"", kfhsh[i].name);
+	cputs(buffer);
+	if (++i == nh) {
+	    break;
+	}
+	cputs(", ");
+    }
+    cputs("\012");
+
     return cclose();
 }
 
 
-# ifdef LPC_EXTENSION
 extern bool ext_dgd (char*);
-# endif
 
 /*
  * NAME:	config->init()
@@ -1226,8 +1295,6 @@ bool conf_init(char *configfile, char *dumpfile, char *module, sector *fragment)
     /* remove previously added kfuns */
     kf_clear();
 
-    UNREFERENCED_PARAMETER(module);
-# ifdef LPC_EXTENSION
     if (module != (char *) NULL && !ext_dgd(module)) {
 	message("Config error: cannot load runtime extension \"%s\"\012",/* LF*/
 		module);
@@ -1237,7 +1304,6 @@ bool conf_init(char *configfile, char *dumpfile, char *module, sector *fragment)
 	m_finish();
 	return FALSE;
     }
-# endif
 
     /* initialize kfuns */
     kf_init();
@@ -1678,6 +1744,15 @@ bool conf_objecti(dataspace *data, object *obj, Int idx, value *v)
 	}
 	break;
 
+    case 7:	/* O_INHERITED */
+	PUT_INTVAL(v, ((obj->flags & O_MASTER) && !O_UPGRADING(obj) &&
+		       O_INHERITED(obj)));
+	break;
+
+    case 8:	/* O_INSTANTIATED */
+	PUT_INTVAL(v, O_HASDATA(obj));
+	break;
+
     default:
 	return FALSE;
     }
@@ -1695,13 +1770,13 @@ array *conf_object(dataspace *data, object *obj)
     Int i;
     array *a;
 
-    a = arr_ext_new(data, 7L);
+    a = arr_ext_new(data, 9L);
     if (ec_push((ec_ftn) NULL)) {
 	arr_ref(a);
 	arr_del(a);
 	error((char *) NULL);
     }
-    for (i = 0, v = a->elts; i < 7; i++, v++) {
+    for (i = 0, v = a->elts; i < 9; i++, v++) {
 	conf_objecti(data, obj, i, v);
     }
     ec_pop();

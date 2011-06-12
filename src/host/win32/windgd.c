@@ -1,6 +1,7 @@
 /*
  * This file is part of DGD, http://dgd-osr.sourceforge.net/
  * Copyright (C) 1993-2010 Dworkin B.V.
+ * Copyright (C) 2010 DGD Authors (see the file Changelog for details)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -16,10 +17,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <windows.h>
 #include "dgd.h"
+
+extern void conn_intr(void);
+
+BOOL WINAPI handler(DWORD type)
+{
+    UNREFERENCED_PARAMETER(type);
+    interrupt();
+    conn_intr();
+    return TRUE;
+}
 
 int main(int argc, char **argv)
 {
+    SetConsoleCtrlHandler(handler, TRUE);
     return dgd_main(argc, argv);
 }
 

@@ -1,6 +1,7 @@
 /*
  * This file is part of DGD, http://dgd-osr.sourceforge.net/
  * Copyright (C) 1993-2010 Dworkin B.V.
+ * Copyright (C) 2010-2011 DGD Authors (see the file Changelog for details)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -188,7 +189,7 @@ static void save_mapping (savecontext*, array*);
  */
 static void save_array(savecontext *x, array *a)
 {
-    char buf[16];
+    char buf[18];
     Uint i;
     value *v;
     xfloat flt;
@@ -255,7 +256,7 @@ static void save_array(savecontext *x, array *a)
  */
 static void save_mapping(savecontext *x, array *a)
 {
-    char buf[16];
+    char buf[18];
     Uint i;
     uindex n;
     value *v;
@@ -377,7 +378,7 @@ int kf_save_object(frame *f)
     control *ctrl;
     string *str;
     dinherit *inh;
-    char file[STRINGSZ], buf[16], tmp[STRINGSZ + 8], *_tmp;
+    char file[STRINGSZ], buf[18], tmp[STRINGSZ + 8], *_tmp;
     savecontext x;
     xfloat flt;
 
@@ -1224,7 +1225,7 @@ int kf_read_file(frame *f, int nargs)
 	    (l != 0 && P_lseek(fd, l, SEEK_SET) < 0)) {
 	    /* bad seek */
 	    P_close(fd);
-	    return 1;
+	    return 2;
 	}
 	sbuf.st_size -= l;
     }
@@ -1531,7 +1532,7 @@ static int cmp(cvoid *cv1, cvoid *cv2)
 char pt_get_dir[] = { C_TYPECHECKED | C_STATIC, 1, 0, 0, 7,
 		      T_MIXED | (2 << REFSHIFT), T_STRING };
 
-# define FILEINFO_CHUNK	128
+# define FILEINFO_CHUNK	1024
 
 /*
  * NAME:	kfun->get_dir()
@@ -1558,7 +1559,7 @@ int kf_get_dir(frame *f)
 	*pat++ = '\0';
     }
 
-    ftable = ALLOCA(fileinfo, ftabsz = FILEINFO_CHUNK);
+    ftable = ALLOC(fileinfo, ftabsz = FILEINFO_CHUNK);
     nfiles = 0;
     if (strpbrk(pat, "?*[\\") == (char *) NULL &&
 	getinfo(file, pat, &ftable[0])) {
@@ -1578,10 +1579,10 @@ int kf_get_dir(frame *f)
 		    if (nfiles == ftabsz) {
 			fileinfo *tmp;
 
-			tmp = ALLOCA(fileinfo, ftabsz + FILEINFO_CHUNK);
+			tmp = ALLOC(fileinfo, ftabsz + FILEINFO_CHUNK);
 			memcpy(tmp, ftable, ftabsz * sizeof(fileinfo));
 			ftabsz += FILEINFO_CHUNK;
-			AFREE(ftable);
+			FREE(ftable);
 			ftable = tmp;
 		    }
 		    ftable[nfiles++] = finf;
@@ -1620,7 +1621,7 @@ int kf_get_dir(frame *f)
 	}
 	ftable -= nfiles;
     }
-    AFREE(ftable);
+    FREE(ftable);
 
     return 0;
 }

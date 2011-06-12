@@ -1,6 +1,7 @@
 #
 # This file is part of DGD, http://dgd-osr.sourceforge.net/
 # Copyright (C) 1993-2010 Dworkin B.V.
+# Copyright (C) 2010 DGD Authors (see the file Changelog for details)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -63,6 +64,6 @@ clean:
 $(OBJ) lpc.o: ../dgd.h ../config.h ../host.h ../error.h ../alloc.h ../str.h
 $(OBJ) lpc.o: ../array.h ../object.h ../xfloat.h ../interpret.h ../data.h
 
-$(OBJ) lpc.o: ../comp/csupport.h
+$(OBJ) lpc.o: lpc_ext.h
 
 lpc.o:	lpc.c list $(OBJ)

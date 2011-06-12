@@ -1,6 +1,7 @@
 /*
  * This file is part of DGD, http://dgd-osr.sourceforge.net/
  * Copyright (C) 1993-2010 Dworkin B.V.
+ * Copyright (C) 2010-2011 DGD Authors (see the file Changelog for details)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -16,20 +17,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+typedef void (*extfunc)(frame *, int, value *);
 typedef struct {
     char *name;		/* function name */
     char *proto;	/* prototype */
     int (*func)();	/* function address */
+    extfunc ext;	/* extension */
     short version;	/* version number */
-    short num;		/* kfun number */
 } kfunc;
 
-extern kfunc kftab[];	/* kfun table */
-extern char  kfind[];	/* kfun indirection table */
+extern kfunc kftab[], kfenc[], kfdec[], kfhsh[];	/* kfun tables */
+extern char  kfind[];					/* indirection table */
+extern int   nkfun, ne, nd, nh;				/* # kfuns */
 
 # define KFUN(kf)	(kftab[UCHAR(kfind[kf])])
 
-typedef void (*extfunc) (frame*, int, value*);
 typedef struct {
     char *name;		/* added kfun name */
     char *proto;	/* simplified prototype */
@@ -105,5 +107,33 @@ extern void kf_restore	(int, int);
 # define KF_NIL		58
 # define KF_INSTANCEOF	59
 # define KF_STORE_AGGR	60
+# define KF_ADD_FLT	61
+# define KF_ADD_FLT_STR	62
+# define KF_ADD_INT_STR	63
+# define KF_ADD_STR	64
+# define KF_ADD_STR_FLT	65
+# define KF_ADD_STR_INT	66
+# define KF_ADD1_FLT	67
+# define KF_DIV_FLT	68
+# define KF_EQ_FLT	69
+# define KF_EQ_STR	70
+# define KF_GE_FLT	71
+# define KF_GE_STR	72
+# define KF_GT_FLT	73
+# define KF_GT_STR	74
+# define KF_LE_FLT	75
+# define KF_LE_STR	76
+# define KF_LT_FLT	77
+# define KF_LT_STR	78
+# define KF_MULT_FLT	79
+# define KF_NE_FLT	80
+# define KF_NE_STR	81
+# define KF_NOT_FLT	82
+# define KF_NOT_STR	83
+# define KF_SUB_FLT	84
+# define KF_SUB1_FLT	85
+# define KF_TST_FLT	86
+# define KF_TST_STR	87
+# define KF_UMIN_FLT	88
 
-# define KF_BUILTINS	61
+# define KF_BUILTINS	89

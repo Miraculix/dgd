@@ -3,6 +3,107 @@ This file lists all changes to the DGD open source release.
 All changes prior to this release on 2010-02-03 can be found
 in doc/Changelog.Dworkin
 
+2011-04-06/2011-05-13
+
+  Felix Croes (felix@dworkin.nl)
+
+  - Deal with explicit arrsize in dumpfile header.
+  - Add O_INHERITED and O_INSTANTIATED to status(obj).
+  - Get the precompiler to compile again.
+  - Generate proper code for the new builtin kfuns.
+  - Deal with explicit LPC int size in dumpfile header.
+  - Ensure that buffers for int=>str conversion are large enough.
+  - Include one more digit of precision when converting a float to string.
+  - Set FLT_DIG to 11, the correct value.
+
+2011-03-22
+
+  Felix Croes (felix@dworkin.nl)
+
+  Released 1.4.7.
+
+2011-03-21
+
+  Felix Croes (felix@dworkin.nl)
+
+  Cherry-pick callout changes from baseline.
+
+2011-03-20
+
+  Felix Croes (felix@dworkin.nl)
+
+  Note that on FreeBSD, "make HOST=FREEBSD LIBS=" should be used.
+
+2011-03-09
+
+  Felix Croes (felix@dworkin.nl)
+
+  Fix a buffer overflow in kf_restore().
+
+2011-01-24/2011-02-03
+
+  Raymond Jennings (shentino@gmail.com)
+
+  Whitespace fixes.
+
+2011-01-24
+
+  Felix Croes (felix@dworkin.nl)
+
+  - Cherry-pick extra builtin kfuns from baseline.
+  - Merge Silenus' jit branch to make use of the new kfuns.
+
+2011-01-24
+
+  Felix Croes (felix@dworkin.nl)
+
+  Released 1.4.6.
+
+2011-01-03
+
+  Felix Croes (felix@dworkin.nl)
+
+  - LIBS=-ldl in src/comp/Makefile.
+  - Add an explicit copyright statement in all files for changes made since
+    the open source release.
+
+2010-12-16/2010-12-17
+
+  Felix Croes (felix@dworkin.nl)
+
+  Import fixes from baseline, for bugs reported by Kris Van Hees.
+
+  src/kfun/file.c
+  src/interpret.c
+
+2010-11-19
+
+  Raymond Jennings (shentino@gmail.com)
+
+  - Added callout throttling.  Simply -DCO_THROTTLE in the
+    top Makefile with the number of callouts to execute in between
+    checks for I/O.
+
+2010-10-13/2010-11-18
+
+  Raymond Jennings (shentino@gmail.com)
+
+  - Many baseline changes deconflicted and merged, including bug fixes.
+  - Cleanups for documentation and some source code
+
+2010-09-16/2010-09-19
+
+  Felix Croes (felix@dworkin.nl)
+
+  - Use intptr_t in one more case.
+  - Remove obsolete advice from doc/Platforms.
+
+2010-09-12
+
+  Felix Croes (felix@dworkin.nl)
+
+  Handle Ctrl-C, and forced program termination in general, on Windows.
+
 2010-09-03
 
   Bart van Leeuwen (aidil@wotf.org)
@@ -135,8 +236,8 @@ in doc/Changelog.Dworkin
 
   Bart van Leeuwen (aidil@wotf.org)
 
-  Merge latest changes from Felix: 
-  - Add an extra field to saved callouts for DGDMP compatibility.                                         
+  Merge latest changes from Felix:
+  - Add an extra field to saved callouts for DGDMP compatibility.
     Dumpfile format version bumped to 11.
 
   src/call_out.c
@@ -186,7 +287,7 @@ in doc/Changelog.Dworkin
   src/comm.c
   src/host/unix/connect.c
   src/host/win32/connect.c
-  
+
 2010-03-23
 
   Bart van Leeuwen
@@ -351,8 +452,8 @@ in doc/Changelog.Dworkin
   src/kfun/table.c
 
 2010-02-24
-  
-  Raymond Jennings
+
+  Raymond Jennings (shentino@gmail.com)
 
   Change file offsets from long to off_t for swap/dump file
   Add sanity check to ensure the configured swapfile size fits
@@ -423,9 +524,9 @@ in doc/Changelog.Dworkin
   see doc/net/ for more information.
 
   src/Makefile
-  src/comm.c 
-  src/comm.h 
-  src/config.c 
+  src/comm.c
+  src/comm.h
+  src/config.c
   src/host/unix/connect.c
   src/lex/ppcontrol.c
   src/comp/comp.c
@@ -444,7 +545,7 @@ in doc/Changelog.Dworkin
   Bart van Leeuwen (aidil@wotf.org)
 
   Add support for // style comments
-  
+
   src/lex/token.c
 
 2010-02-03

@@ -1,6 +1,7 @@
 /*
  * This file is part of DGD, http://dgd-osr.sourceforge.net/
  * Copyright (C) 1993-2010 Dworkin B.V.
+ * Copyright (C) 2010 DGD Authors (see the file Changelog for details)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -15,8 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-# ifdef LPC_EXTENSION
 
 # include "dgd.h"
 # include <dlfcn.h>
@@ -34,4 +33,3 @@ voidf *P_dload(char *module, char *symbol)
     }
     return (voidf *) dlsym(h, symbol);
 }
-# endif /* LPC_EXTENSION */

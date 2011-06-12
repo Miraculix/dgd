@@ -1,6 +1,7 @@
 /*
  * This file is part of DGD, http://dgd-osr.sourceforge.net/
  * Copyright (C) 1993-2010 Dworkin B.V.
+ * Copyright (C) 2010 DGD Authors (see the file Changelog for details)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -165,7 +166,7 @@ void i_grow_stack(frame *f, int size)
     if (f->sp < f->lip + size + MIN_STACK) {
 	int spsize, lisize;
 	value *v, *stk;
-	long offset;
+	intptr_t offset;
 
 	/*
 	 * extend the local stack
@@ -1904,7 +1905,8 @@ static void i_interpret(frame *f, char *pc)
 	    if (u != 0) {
 		if ((short) u < 0) {
 		    error("Too few arguments for kfun %s", kf->name);
-		} else if (u <= PROTO_NARGS(kf->proto)) {
+		} else if (u <= PROTO_NARGS(kf->proto) + PROTO_VARGS(kf->proto))
+		{
 		    error("Bad argument %d for kfun %s", u, kf->name);
 		} else {
 		    error("Too many arguments for kfun %s", kf->name);

@@ -1,6 +1,7 @@
 /*
  * This file is part of DGD, http://dgd-osr.sourceforge.net/
  * Copyright (C) 1993-2010 Dworkin B.V.
+ * Copyright (C) 2010-2011 DGD Authors (see the file Changelog for details)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -781,13 +782,12 @@ bool flt_atof(char **s, xfloat *f)
  */
 void flt_ftoa(xfloat *f, char *buffer)
 {
-    static flt tenmillion =	{ 0, 0x8016, 0x4c4b, 0x20000000L };
     unsigned short i;
     short e;
     Uint n;
     char *p;
     flt *t, *t2;
-    char digits[9];
+    char digits[10];
     flt a;
 
     f_xftof(f, &a);
@@ -828,7 +828,7 @@ void flt_ftoa(xfloat *f, char *buffer)
 	}
 	e = -e;
     }
-    f_mult(&a, &tenmillion);
+    f_mult(&a, &tens[3]);
     f_37bits(&a);
 
     /*
@@ -837,8 +837,8 @@ void flt_ftoa(xfloat *f, char *buffer)
     f_add(&a, &half);
     i = a.exp - BIAS + 1 - 15;
     n = ((Uint) a.high << i) | (a.low >> (31 - i));
-    if (n == 100000000L) {
-	p = digits + 7;
+    if (n == 1000000000L) {
+	p = digits + 8;
 	p[0] = '1';
 	p[1] = '\0';
 	i = 1;
@@ -847,7 +847,7 @@ void flt_ftoa(xfloat *f, char *buffer)
 	while (n != 0 && n % 10 == 0) {
 	    n /= 10;
 	}
-	p = digits + 8;
+	p = digits + 9;
 	*p = '\0';
 	i = 0;
 	do {
@@ -857,7 +857,7 @@ void flt_ftoa(xfloat *f, char *buffer)
 	} while (n != 0);
     }
 
-    if (e >= 8 || (e < -3 && i - e > 8)) {
+    if (e >= 9 || (e < -3 && i - e > 9)) {
 	buffer[0] = *p;
 	if (i != 1) {
 	    buffer[1] = '.';
@@ -871,7 +871,7 @@ void flt_ftoa(xfloat *f, char *buffer)
 	    buffer[i] = '-';
 	    e = -e;
 	}
-	p = digits + 8;
+	p = digits + 9;
 	do {
 	    *--p = '0' + e % 10;
 	    e /= 10;
@@ -879,7 +879,7 @@ void flt_ftoa(xfloat *f, char *buffer)
 	strcpy(buffer + i + 1, p);
     } else if (e < 0) {
 	e = 1 - e;
-	memcpy(buffer, "0.000000", e);
+	memcpy(buffer, "0.0000000", e);
 	strcpy(buffer + e, p);
     } else {
 	while (e >= 0) {

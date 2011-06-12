@@ -1,6 +1,7 @@
 /*
  * This file is part of DGD, http://dgd-osr.sourceforge.net/
  * Copyright (C) 1993-2010 Dworkin B.V.
+ * Copyright (C) 2010-2011 DGD Authors (see the file Changelog for details)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -1136,6 +1137,7 @@ static node *bini(int op, node *n1, node *n2, char *name)
     return node_bin(op, T_INT, n1, n2);
 }
 
+
 /*
  * NAME:	bina()
  * DESCRIPTION:	handle a binary arithmetic operator
@@ -1162,6 +1164,29 @@ static node *bina(int op, node *n1, node *n2, char *name)
 	type = T_INT;
     } else if (n1->mod == T_FLOAT || n2->mod == T_FLOAT) {
 	type = T_FLOAT;
+        switch(op) {
+	    case N_ADD: 
+	    case N_ADD_EQ: 
+	    case N_ADD_EQ_1: 
+	    case N_DIV:
+	    case N_DIV_EQ:
+	    case N_EQ:
+	    case N_GE:
+	    case N_GT:
+	    case N_LE:
+	    case N_LT:
+	    case N_MULT:
+	    case N_MULT_EQ:
+	    case N_NE:
+	    case N_SUB_EQ_1:
+	    case N_SUB_EQ:
+	    case N_MIN_MIN:
+	    case N_PLUS_PLUS:
+		op+=2;
+		break;
+	    default:
+		break;
+	}
     }
 
     return node_bin(op, type, n1, n2);
@@ -1212,8 +1237,8 @@ static node *mdiv(int op, node *n1, node *n2, char *name)
 	if ((d | i) < 0) {
 	    Int r;
 
-            r = ((Uint) ((i < 0) ? -i : i)) / ((Uint) ((d < 0) ? -d : d));
-            n1->l.number = ((i ^ d) < 0) ? -r : r;
+	    r = ((Uint) ((i < 0) ? -i : i)) / ((Uint) ((d < 0) ? -d : d));
+	    n1->l.number = ((i ^ d) < 0) ? -r : r;
 	} else {
 	    n1->l.number = ((Uint) i) / ((Uint) d);
 	}
@@ -1804,7 +1829,7 @@ static node *assign(node *n1, node *n2)
 			i_typename(tnbuf2, type));
 		type = T_MIXED;
 	    }
-  
+
 	    n = n1->l.left;
 	    while (n != (node *) NULL) {
 		if (n->type == N_PAIR) {
