@@ -1,7 +1,7 @@
 /*
  * This file is part of DGD, http://dgd-osr.sourceforge.net/
  * Copyright (C) 1993-2010 Dworkin B.V.
- * Copyright (C) 2010 DGD Authors (see the file Changelog for details)
+ * Copyright (C) 2010-2011 DGD Authors (see the file Changelog for details)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -1509,7 +1509,7 @@ node *c_endswitch(node *expr, node *stmt)
 		/* determine the number of bytes per case */
 		l = v[0]->l.left->l.number;
 		if (l < 0) {
-		    l = 1 - l;
+		    l = -1 - l;
 		}
 		if (l < w[0]->l.left->r.number) {
 		    l = w[0]->l.left->r.number;

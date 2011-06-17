@@ -1,7 +1,7 @@
 /*
  * This file is part of DGD, http://dgd-osr.sourceforge.net/
  * Copyright (C) 1993-2010 Dworkin B.V.
- * Copyright (C) 2010 DGD Authors (see the file Changelog for details)
+ * Copyright (C) 2010-2011 DGD Authors (see the file Changelog for details)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -47,7 +47,7 @@ typedef struct _arrhchunk_ {
 # define MELT_CHUNK	128
 
 typedef struct _mapelt_ {
-    unsigned short hashval;	/* hash value of index */
+    Uint hashval;		/* hash value of index */
     bool add;			/* new element? */
     value idx;			/* index */
     value val;			/* value */
@@ -62,7 +62,7 @@ typedef struct _meltchunk_ {
 typedef struct _maphash_ {
     unsigned short size;	/* # elements in hash table */
     unsigned short sizemod;	/* mapping size modification */
-    unsigned short tablesize;	/* actual hash table size */
+    Uint tablesize;		/* actual hash table size */
     mapelt *table[1];		/* hash table */
 } maphash;
 
@@ -1755,11 +1755,11 @@ array *map_intersect(dataspace *data, array *m1, array *a2)
  * NAME:	mapping->grow()
  * DESCRIPTION:	add an element to a mapping
  */
-static mapelt *map_grow(dataspace *data, array *m, unsigned short hashval, bool add)
+static mapelt *map_grow(dataspace *data, array *m, Uint hashval, bool add)
 {
     maphash *h;
     mapelt *e;
-    unsigned short i;
+    Uint i;
 
     h = m->hashed;
     if (add &&
@@ -1846,7 +1846,7 @@ static mapelt *map_grow(dataspace *data, array *m, unsigned short hashval, bool 
  */
 value *map_index(dataspace *data, array *m, value *val, value *elt)
 {
-    unsigned short i;
+    Uint i;
     mapelt *e, **p;
     bool del, add, hash;
 
