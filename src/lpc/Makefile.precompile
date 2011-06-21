@@ -52,7 +52,7 @@ noprecompile:
 	echo "lpc/lpc.o" >>dgd;
         
 precompile:
-	rm -rf c/*;rm -f dgd;rm -f list;for xx in `cat precomp`; do mkdir -p c/$$xx;$(PRECOMP) $(CONFIG) $$xx c/$$xx/precompile.c ;echo \#include \"c/$$xx/precompile.c\" >> list;echo lpc/c/$$xx/precompile.o >> dgd;echo $$xx;$(CC) -c $(CPPFLAGS) $(CFLAGS) -o c/$$xx/precompile.o c/$$xx/precompile.c;  done;echo "lpc/lpc.o" >>dgd;
+	rm -rf c;mkdir c;rm -f dgd;rm -f list;for xx in `cat precomp`; do mkdir -p c/$$xx;$(PRECOMP) $(CONFIG) $$xx c/$$xx/precompile.c ;echo \#include \"c/$$xx/precompile.c\" >> list;echo lpc/c/$$xx/precompile.o >> dgd;echo $$xx;$(CC) -c $(CPPFLAGS) $(CFLAGS) -o c/$$xx/precompile.o c/$$xx/precompile.c;  done;echo "lpc/lpc.o" >>dgd;
 	
 #$(SRC):	$(PRECOMP)
 
