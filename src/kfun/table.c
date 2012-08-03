@@ -59,19 +59,20 @@ char kfind[256];	/* n -> index */
 static char kfx[256];	/* index -> n */
 int nkfun, ne, nd, nh;	/* # kfuns */
 
+extern void kf_enc(frame *, int, value *);
+extern void kf_enc_key(frame *, int, value *);
+extern void kf_dec(frame *, int, value *);
+extern void kf_dec_key(frame *, int, value *);
+extern void kf_xcrypt(frame *, int, value *);
+extern void kf_md5(frame *, int, value *);
+extern void kf_sha1(frame *, int, value *);
+
 /*
  * NAME:	kfun->clear()
  * DESCRIPTION:	clear previously added kfuns from the table
  */
 void kf_clear()
 {
-    extern void kf_enc(frame *, int, value *);
-    extern void kf_enc_key(frame *, int, value *);
-    extern void kf_dec(frame *, int, value *);
-    extern void kf_dec_key(frame *, int, value *);
-    extern void kf_xcrypt(frame *, int, value *);
-    extern void kf_md5(frame *, int, value *);
-    extern void kf_sha1(frame *, int, value *);
     static char proto[] = { T_VOID, 0 };
     static extkfunc builtin[] = {
 	{ "encrypt DES", proto, kf_enc },
@@ -138,8 +139,13 @@ static char *prototype(char *proto)
 		varargs = TRUE;
 	    } else {
 		if (*p != T_MIXED) {
-		    /* non-mixed arguments: typecheck this function */
-		    tclass |= C_TYPECHECKED;
+		    if (*p == T_LVALUE) {
+			/* lvalue arguments: turn off typechecking */
+			tclass &= ~C_TYPECHECKED;
+		    } else {
+			/* non-mixed arguments: typecheck this function */
+			tclass |= C_TYPECHECKED;
+		    }
 		}
 		if (varargs) {
 		    vargs++;

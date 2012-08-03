@@ -1,7 +1,7 @@
 /*
  * This file is part of DGD, http://dgd-osr.sourceforge.net/
  * Copyright (C) 1993-2010 Dworkin B.V.
- * Copyright (C) 2010 DGD Authors (see the file Changelog for details)
+ * Copyright (C) 2010,2012 DGD Authors (see the file Changelog for details)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -1260,15 +1260,15 @@ int cb_subst(cmdbuf *cb)
     }
 
     cb->othis = cb->uthis;
-    if (edit == cb->edit) {
-	error("Substitute pattern match failed");
-    }
-
-    /* some marks may have been messed up. fix them */
-    for (l = m, k = cb->mark; l < &m[26]; l++, k++) {
-	if (*l != 0) {
-	    *k = *l;
+    if (edit != cb->edit) {
+	/* some marks may have been messed up. fix them */
+	for (l = m, k = cb->mark; l < &m[26]; l++, k++) {
+	    if (*l != 0) {
+		*k = *l;
+	    }
 	}
+    } else if (!(cb->flags & CB_GLOBAL)) {
+	error("Substitute pattern match failed");
     }
 
     return RET_FLAGS;

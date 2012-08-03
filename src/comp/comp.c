@@ -171,11 +171,11 @@ static void dump_vardefs(control *ctrl)
     if (ctrl->nvardefs != 0) {
 	printf("\nstatic dvardef vardefs[] = {\n");
 	for (i = 0; i < ctrl->nvardefs; i++) {
-	    printf("{ %d, %d, %u, %u },\n",
+	    printf("{ %d, %d, %d, %u },\n",
 		   ctrl->vardefs[i].class,
+		   ctrl->vardefs[i].type,
 		   ctrl->vardefs[i].inherit,
-		   ctrl->vardefs[i].index,
-		   ctrl->vardefs[i].type);
+		   ctrl->vardefs[i].index);
 	}
 	printf("};\n");
 	if (ctrl->nclassvars != 0) {
@@ -464,8 +464,9 @@ void pc_restore(int fd, int conv)
  * NAME:	swap->init()
  * DESCRIPTION:	pretend to initialize the swap device
  */
-void sw_init(char *file, unsigned int total, unsigned int cache, unsigned int secsize)
+bool sw_init(char *file, unsigned int total, unsigned int cache, unsigned int secsize)
 {
+    return TRUE;
 }
 
 /*
@@ -733,17 +734,17 @@ void comm_openport(frame *f, object *obj, unsigned char protocol,
 {
 }
 
-void
-comm_connect(frame *f, object *obj, char *addr, unsigned char protocol, 
-	unsigned short port)
-{
-}
-
 int comm_senddatagram(object *obj, string *str, string *ip, int port)
 {
     return 0;
 }
 #endif
+
+void
+comm_connect(frame *f, object *obj, char *addr, unsigned char protocol, 
+	unsigned short port)
+{
+}
 
 /*
  * NAME:	ed->init()

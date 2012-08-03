@@ -1,7 +1,7 @@
 /*
  * This file is part of DGD, http://dgd-osr.sourceforge.net/
  * Copyright (C) 1993-2010 Dworkin B.V.
- * Copyright (C) 2010 DGD Authors (see the file Changelog for details)
+ * Copyright (C) 2010-2011 DGD Authors (see the file Changelog for details)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -823,7 +823,7 @@ void d_commit_plane(Int level, value *retval)
      * pass 3: deallocate
      */
     for (p = plist; p != clist; p = plist) {
-	p->prev->flags = p->flags & MOD_ALL | MOD_SAVE;
+	p->prev->flags = (p->flags & MOD_ALL) | MOD_SAVE;
 	p->prev->schange = p->schange;
 	p->prev->achange = p->achange;
 	p->prev->imports = p->imports;

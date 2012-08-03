@@ -2332,27 +2332,27 @@ char pt_store_aggr[] = { C_STATIC, 2, 0, 0, 8, T_MIXED,
  */
 int kf_store_aggr(frame *f)
 {
-    int n, i;
+    int n;
     value *v;
     value val;
  
-    n = f->sp[0].u.number;
-    if (f->sp[1].type != T_ARRAY || f->sp[1].u.array->size != n) {
+    n = (f->sp++)->u.number;
+    if (f->sp[0].type != T_ARRAY || f->sp[0].u.array->size != n) {
 	kf_argerror(KF_STORE_AGGR, 2);
     }
-    val = *++(f->sp);
-    for (i = 0; i < n; i++) {
-	f->sp[i] = f->sp[i + 1];
-    }
-    f->sp[n] = val;
 
+    if (ec_push(NULL)) {
+	i_del_value(&val);
+	error(NULL);
+    }
+    val = *f->sp++;
     for (v = d_get_elts(val.u.array) + n; n > 0; --n) {
-	*--(f->sp) = *--v;
-	i_ref_value(v);
+	i_push_value(f, --v);
 	i_store(f);
 	i_del_value(v);
-	f->sp += 2;
     }
+    *--f->sp = val;
+    ec_pop();
 
     return 0;
 }

@@ -4,6 +4,7 @@ bin/driver.old
 dgd
 src/a.out
 src/comp/parser.[ch]
+src/comp/a.out
 src/host/local.c
 src/host/random.c
 src/host/dirent.c
@@ -18,4 +19,5 @@ src/host/win32/ipch
 src/host/win32/dgd.opensdf
 src/host/win32/dgd.sdf
 src/host/win32/dgd.suo
+src/host/win32/dgd.v11.suo
 src/host/win32/dgd.vcxproj.user

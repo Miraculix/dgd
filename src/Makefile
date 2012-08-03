@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 HOST=	DARWIN
-DEFINES=-D$(HOST) -DNETWORK_EXTENSIONS -DMDBM_SUPPORT -DDGD_PRECOMP #-DLPC_EXTENSION #-DDUMP_FUNCS
+DEFINES=-D$(HOST) -DNETWORK_EXTENSIONS -DMDBM_SUPPORT -DDGD_PRECOMP -DCLOSURES -DCO_THROTTLE=50 #-DLPC_EXTENSION #-DDUMP_FUNCS
 DEBUG=	-O -g
 CCFLAGS=$(DEFINES) $(DEBUG)
 CFLAGS=	-I. -Icomp -Ilex -Ied -Iparser -Ikfun $(CCFLAGS)
@@ -53,6 +53,8 @@ a.out:	$(OBJ) always
 
 always:
 	@rm -f a.out
+
+all:	a.out
 
 $(BIN)/driver: a.out
 	-mv $(BIN)/driver $(BIN)/driver.old

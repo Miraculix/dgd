@@ -1,7 +1,7 @@
 /*
  * This file is part of DGD, http://dgd-osr.sourceforge.net/
  * Copyright (C) 1993-2010 Dworkin B.V.
- * Copyright (C) 2010-2011 DGD Authors (see the file Changelog for details)
+ * Copyright (C) 2010-2012 DGD Authors (see the file Changelog for details)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -90,34 +90,37 @@ static config conf[] = {
 				{ "include_dirs",	'(' },
 # define INCLUDE_FILE	14
 				{ "include_file",	STRING_CONST, TRUE },
-# define OBJECTS	15
+# define MODULES	15
+				{ "modules",		'(' },
+# define OBJECTS	16
 				{ "objects",		INT_CONST, FALSE, FALSE,
 							2, UINDEX_MAX },
-# define PORTS          16 
-                                { "ports",              INT_CONST, FALSE, FALSE, 1, 32 },
-# define SECTOR_SIZE	17
+# define PORTS		17 
+				{ "ports",		INT_CONST, FALSE, FALSE,
+							1, 32 },
+# define SECTOR_SIZE	18
 				{ "sector_size",	INT_CONST, FALSE, FALSE,
 							512, 65535 },
-# define STATIC_CHUNK	18
+# define STATIC_CHUNK	19
 				{ "static_chunk",	INT_CONST },
-# define SWAP_FILE	19
+# define SWAP_FILE	20
 				{ "swap_file",		STRING_CONST },
-# define SWAP_FRAGMENT	20
+# define SWAP_FRAGMENT	21
 				{ "swap_fragment",	INT_CONST, FALSE, FALSE,
 							0, SW_UNUSED },
-# define SWAP_SIZE	21
+# define SWAP_SIZE	22
 				{ "swap_size",		INT_CONST, FALSE, FALSE,
 							1024, SW_UNUSED },
-# define TELNET_PORT	22
+# define TELNET_PORT	23
 				{ "telnet_port",	'[', FALSE, FALSE,
 							1, USHRT_MAX },
-# define TYPECHECKING	23
+# define TYPECHECKING	24
 				{ "typechecking",	INT_CONST, FALSE, FALSE,
 							0, 2 },
-# define USERS		24
+# define USERS		25
 				{ "users",		INT_CONST, FALSE, FALSE,
-							1, 192 },
-# define NR_OPTIONS	25
+							1, EINDEX_MAX },
+# define NR_OPTIONS	26
 };
 
 
@@ -127,7 +130,7 @@ typedef struct { char fill; Int i;	} aligni;
 typedef struct { char fill; char *p;	} alignp;
 typedef struct { char c;		} alignz;
 
-# define FORMAT_VERSION	13
+# define FORMAT_VERSION	14
 
 # define DUMP_VALID	0	/* valid dump flag */
 # define DUMP_VERSION	1	/* dump file version number */
@@ -292,7 +295,7 @@ void conf_dump()
     }
 
     P_lseek(fd, 0L, SEEK_SET);
-    P_write(fd, header, sizeof(dumpinfo));
+    (void) P_write(fd, header, sizeof(dumpinfo));
 }
 
 /*
@@ -302,7 +305,7 @@ void conf_dump()
 static void conf_restore(int fd)
 {
     bool conv_co1, conv_co2, conv_co3, conv_lwo, conv_ctrl1, conv_ctrl2,
-    conv_data, conv_type, conv_inherit, conv_time;
+    conv_data, conv_type, conv_inherit, conv_time, conv_vm;
     unsigned int secsize;
 
     if (P_read(fd, rheader, DUMP_HEADERSZ) != DUMP_HEADERSZ ||
@@ -311,7 +314,8 @@ static void conf_restore(int fd)
 	error("Bad or incompatible restore file header");
     }
     conv_co1 = conv_co2 = conv_co3 = conv_lwo = conv_ctrl1 = conv_ctrl2 =
-	       conv_data = conv_type = conv_inherit = conv_time = FALSE;
+	       conv_data = conv_type = conv_inherit = conv_time = conv_vm =
+	       FALSE;
     if (rheader[DUMP_VERSION] < 3) {
 	conv_co1 = TRUE;
     }
@@ -346,6 +350,9 @@ static void conf_restore(int fd)
     }
     if (rheader[DUMP_VERSION] < 13) {
 	conv_time = TRUE;
+    }
+    if (rheader[DUMP_VERSION] < 14) {
+	conv_vm = TRUE;
     }
     rheader[DUMP_VERSION] = FORMAT_VERSION;
     if (memcmp(header, rheader, DUMP_TYPE) != 0 || rzero1 != 0 || rzero2 != 0 ||
@@ -401,7 +408,7 @@ static void conf_restore(int fd)
     kf_restore(fd, conv_co1);
     o_restore(fd, (uindex) ((conv_lwo) ? 1 << (rusize * 8 - 1) : 0));
     d_init_conv(conv_ctrl1, conv_ctrl2, conv_data, conv_co1, conv_co2,
-		conv_type, conv_inherit, conv_time);
+		conv_type, conv_inherit, conv_time, conv_vm);
     pc_restore(fd, conv_inherit);
     boottime = P_time();
     co_restore(fd, boottime, conv_co2, conv_co3, conv_time);
@@ -735,9 +742,10 @@ void conf_dread(int fd, char *buf, char *layout, Uint n)
 
 
 # define MAX_PORTS	32
-# define MAX_DIRS	32
+# define MAX_STRINGS	32
 
-static char *dirs[MAX_DIRS], *bhosts[MAX_PORTS], *thosts[MAX_PORTS];
+static char *dirs[MAX_STRINGS], *modules[MAX_STRINGS];
+static char *bhosts[MAX_PORTS], *thosts[MAX_PORTS];
 static unsigned short bports[MAX_PORTS], tports[MAX_PORTS];
 static int ntports, nbports;
 
@@ -759,7 +767,7 @@ static bool conf_config()
     char buf[STRINGSZ];
     char *p;
     int h, l, m, c;
-    char **hosts;
+    char **strs;
     unsigned short *ports;
 
     for (h = NR_OPTIONS; h > 0; ) {
@@ -855,17 +863,22 @@ static bool conf_config()
 		return FALSE;
 	    }
 	    l = 0;
+	    if (m == INCLUDE_DIRS) {
+		strs = dirs;
+	    } else {
+		strs = modules;
+	    }
 	    for (;;) {
 		if (pp_gettok() != STRING_CONST) {
 		    conferr("string expected");
 		    return FALSE;
 		}
-		if (l == MAX_DIRS - 1) {
-		    conferr("too many include directories");
+		if (l == MAX_STRINGS - 1) {
+		    conferr("array too large");
 		    return FALSE;
 		}
 		m_static();
-		dirs[l] = strcpy(ALLOC(char, strlen(yytext) + 1), yytext);
+		strs[l] = strcpy(ALLOC(char, strlen(yytext) + 1), yytext);
 		l++;
 		m_dynamic();
 		if ((c=pp_gettok()) == '}') {
@@ -880,7 +893,7 @@ static bool conf_config()
 		conferr("')' expected");
 		return FALSE;
 	    }
-	    dirs[l] = (char *) NULL;
+	    strs[l] = (char *) NULL;
 	    break;
 
 	case '[':
@@ -891,10 +904,10 @@ static bool conf_config()
 	    l = 0;
 	    if ((c=pp_gettok()) != ']') {
 		if (m == BINARY_PORT) {
-		    hosts = bhosts;
+		    strs = bhosts;
 		    ports = bports;
 		} else {
-		    hosts = thosts;
+		    strs = thosts;
 		    ports = tports;
 		}
 		for (;;) {
@@ -907,11 +920,11 @@ static bool conf_config()
 			return FALSE;
 		    }
 		    if (strcmp(yytext, "*") == 0) {
-			hosts[l] = (char *) NULL;
+			strs[l] = (char *) NULL;
 		    } else {
 			m_static();
-			hosts[l] = strcpy(ALLOC(char, strlen(yytext) + 1),
-					  yytext);
+			strs[l] = strcpy(ALLOC(char, strlen(yytext) + 1),
+					 yytext);
 			m_dynamic();
 		    }
 		    if (pp_gettok() != ':') {
@@ -956,13 +969,13 @@ static bool conf_config()
     }
 
     for (l = 0; l < NR_OPTIONS; l++) {
-	if (!conf[l].set) {
+	if (!conf[l].set && l != MODULES) {
 	    char buffer[64];
 
 #ifndef NETWORK_EXTENSIONS
             /* don't complain about the ports option not being
                specified if the network extensions are disabled */
-            if( strcmp( conf[l].name, "ports" ) == 0 ) {
+	    if (l == PORTS) {
                 continue;
             }
 #endif
@@ -1010,7 +1023,7 @@ static void cputs(char *str)
     while (bufsz + len > BUF_SIZE) {
 	chunk = BUF_SIZE - bufsz;
 	memcpy(obuf + bufsz, str, chunk);
-	P_write(fd, obuf, BUF_SIZE);
+	(void) P_write(fd, obuf, BUF_SIZE);
 	str += chunk;
 	len -= chunk;
 	bufsz = 0;
@@ -1251,7 +1264,7 @@ extern bool ext_dgd (char*);
 bool conf_init(char *configfile, char *dumpfile, char *module, sector *fragment)
 {
     char buf[STRINGSZ];
-    int fd;
+    int fd, i;
     bool init;
 
     fd = -1;
@@ -1297,6 +1310,17 @@ bool conf_init(char *configfile, char *dumpfile, char *module, sector *fragment)
     /* remove previously added kfuns */
     kf_clear();
 
+    for (i = 0; modules[i] != NULL; i++) {
+	if (!ext_dgd(modules[i])) {
+	    message("Config error: cannot load runtime extension \"%s\"\012",
+		    modules[i]);
+	    if (dumpfile != (char *) NULL) {
+		P_close(fd);
+	    }
+	    m_finish();
+	    return FALSE;
+	}
+    }
     if (module != (char *) NULL && !ext_dgd(module)) {
 	message("Config error: cannot load runtime extension \"%s\"\012",/* LF*/
 		module);
@@ -1344,10 +1368,17 @@ bool conf_init(char *configfile, char *dumpfile, char *module, sector *fragment)
     o_init((uindex) conf[OBJECTS].u.num, (Uint) conf[DUMP_INTERVAL].u.num);
 
     /* initialize swap device */
-    sw_init(conf[SWAP_FILE].u.str,
+    if (!sw_init(conf[SWAP_FILE].u.str,
 	    (sector) conf[SWAP_SIZE].u.num,
 	    (sector) conf[CACHE_SIZE].u.num,
-	    (unsigned int) conf[SECTOR_SIZE].u.num);
+	    (unsigned int) conf[SECTOR_SIZE].u.num)) {
+	comm_finish();
+	if (dumpfile != (char *) NULL) {
+	    P_close(fd);
+	}
+	m_finish();
+	return FALSE;
+    }
 
     /* initialize swapped data handler */
     d_init();

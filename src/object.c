@@ -1,7 +1,7 @@
 /*
  * This file is part of DGD, http://dgd-osr.sourceforge.net/
  * Copyright (C) 1993-2010 Dworkin B.V.
- * Copyright (C) 2010-2011 DGD Authors (see the file Changelog for details)
+ * Copyright (C) 2010-2012 DGD Authors (see the file Changelog for details)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -779,7 +779,7 @@ void o_del(object *obj, frame *f)
 	/* can happen if object selfdestructs in close()-on-destruct */
 	error("Destructing destructed object");
     }
-    i_odest(f, obj);	/* wipe out occurrances on the stack */
+    i_odest(f, obj);	/* wipe out occurrences on the stack */
     if (obj->data == (dataspace *) NULL && obj->dfirst != SW_UNUSED) {
 	o_dataspace(obj);	/* load dataspace now */
     }
@@ -851,6 +851,11 @@ char *o_builtin_name(Int type)
      * the base name is then: builtin/type
      */
     switch (type) {
+# ifdef CLOSURES
+    case BUILTIN_FUNCTION:
+	return BIPREFIX "function";
+# endif
+
 # ifdef DEBUG
     default:
 	fatal("unknown builtin type %d", type);
@@ -934,11 +939,11 @@ object *o_find(char *name, int access)
  * NAME:	object->restore_object()
  * DESCRIPTION:	restore an object from the dump file
  */
-static void o_restore_obj(object *obj)
+static void o_restore_obj(object *obj, bool cactive, bool dactive)
 {
     BCLR(omap, obj->index);
     --dobjects;
-    d_restore_obj(obj, counttab, rotabsize);
+    d_restore_obj(obj, counttab, rotabsize, cactive, dactive);
 }
 
 /*
@@ -956,7 +961,7 @@ control *o_control(object *obj)
     }
     if (o->ctrl == (control *) NULL) {
 	if (BTST(omap, o->index)) {
-	    o_restore_obj(o);
+	    o_restore_obj(o, TRUE, FALSE);
 	} else {
 	    o->ctrl = d_load_control(o);
 	}
@@ -974,7 +979,7 @@ dataspace *o_dataspace(object *o)
 {
     if (o->data == (dataspace *) NULL) {
 	if (BTST(omap, o->index)) {
-	    o_restore_obj(o);
+	    o_restore_obj(o, TRUE, TRUE);
 	} else {
 	    o->data = d_load_dataspace(o);
 	}
@@ -1267,34 +1272,32 @@ int uindex_compare(const void *pa, const void *pb)
  */
 void o_trim()
 {
-    uindex nfree = baseplane.nfreeobjs;
     uindex npurge;
     uindex *entries;
     uindex i;
     uindex j;
 
-    if (!nfree) {
+    if (!baseplane.nfreeobjs) {
 	/* nothing to trim */
 	return;
     }
 
     npurge = 0;
-    entries = ALLOC(uindex, nfree);
+    entries = ALLOC(uindex, baseplane.nfreeobjs);
 
     j = baseplane.free;
 
     /* 1. prepare a list of free objects */
-    for (i = 0; i < nfree; i++) {
+    for (i = 0; i < baseplane.nfreeobjs; i++) {
         entries[i] = j;
         j = otable[j].prev;
     }
 
     /* 2. sort indices from low to high */
-    qsort(entries, nfree, sizeof(uindex), uindex_compare);
+    qsort(entries, baseplane.nfreeobjs, sizeof(uindex), uindex_compare);
 
     /* 3. trim the object table */
-    while (nfree > 0 && entries[nfree - 1] == baseplane.nobjects - 1) {
-	nfree--;
+    while (baseplane.nfreeobjs > 0 && entries[baseplane.nfreeobjs - 1] == baseplane.nobjects - 1) {
 	npurge++;
 	baseplane.nobjects--;
 	baseplane.nfreeobjs--;
@@ -1305,19 +1308,14 @@ void o_trim()
     /* 4. relink remaining free objects from low to high */
     j = OBJ_NONE;
 
-    for (i = 0; i < nfree; i++) {
-	uindex n = entries[nfree - i - 1];
+    for (i = 0; i < baseplane.nfreeobjs; i++) {
+	uindex n = entries[baseplane.nfreeobjs - i - 1];
 	otable[n].prev = j;
 	j = n;
     }
 
     baseplane.free = j;
-
     FREE(entries);
-
-#ifdef DEBUG
-    fprintf(stderr, "%i objects purged\n", npurge);
-#endif
 }
 
 /*
@@ -1510,7 +1508,7 @@ bool o_copy(Uint time)
 	while (dobjects > n) {
 	    for (obj = OBJ(dobject); !BTST(omap, obj->index); obj++) ;
 	    dobject = obj->index + 1;
-	    o_restore_obj(obj);
+	    o_restore_obj(obj, FALSE, FALSE);
 	    if (time == 0) {
 		d_swapout(1);
 	    }

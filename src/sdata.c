@@ -1,7 +1,7 @@
 /*
  * This file is part of DGD, http://dgd-osr.sourceforge.net/
  * Copyright (C) 1993-2010 Dworkin B.V.
- * Copyright (C) 2010-2011 DGD Authors (see the file Changelog for details)
+ * Copyright (C) 2010-2012 DGD Authors (see the file Changelog for details)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -151,6 +151,15 @@ typedef struct {
 static char osi_layout[] = "uus";
 
 typedef struct {
+    char class;			/* variable class */
+    char inherit;		/* variable name inherit index */
+    unsigned short index;	/* variable name index */
+    unsigned short type;	/* variable type */
+} ovardef;
+
+# define OV_LAYOUT	"ccss"
+
+typedef struct {
     sector nsectors;		/* number of sectors in data space */
     short flags;		/* dataspace flags: compression */
     unsigned short nvariables;	/* number of variables */
@@ -297,6 +306,7 @@ static bool conv_co1, conv_co2;		/* convert callouts? */
 static bool conv_type;			/* convert types? */
 static bool conv_inherit;		/* convert inherits? */
 static bool conv_time;			/* convert time? */
+static bool conv_vm;			/* convert VM? */
 static bool converted;			/* conversion complete? */
 
 
@@ -311,7 +321,7 @@ void d_init()
     gcdata = (dataspace *) NULL;
     nctrl = ndata = 0;
     conv_ctrl1 = conv_ctrl2 = conv_data = conv_co1 = conv_co2 = conv_type =
-		 conv_time = FALSE;
+		 conv_time = conv_vm = FALSE;
     converted = FALSE;
 }
 
@@ -319,7 +329,7 @@ void d_init()
  * NAME:	data->init_conv()
  * DESCRIPTION:	prepare for conversions
  */
-void d_init_conv(int ctrl1, int ctrl2, int data, int callout1, int callout2, int type, int inherit, int time)
+void d_init_conv(int ctrl1, int ctrl2, int data, int callout1, int callout2, int type, int inherit, int time, int vm)
 {
     conv_ctrl1 = ctrl1;
     conv_ctrl2 = ctrl2;
@@ -329,6 +339,7 @@ void d_init_conv(int ctrl1, int ctrl2, int data, int callout1, int callout2, int
     conv_type = type;
     conv_inherit = inherit;
     conv_time = time;
+    conv_vm = vm;
 }
 
 /*
@@ -1539,7 +1550,7 @@ static void d_save_control(control *ctrl)
      */
 
     /* create header */
-    header.flags = ctrl->flags & (CTRL_UNDEFINED | CTRL_CONVERTED);
+    header.flags = ctrl->flags & (CTRL_UNDEFINED | CTRL_CONVERTED | CTRL_OLDVM);
     header.ninherits = ctrl->ninherits;
     header.imapsz = ctrl->imapsz;
     header.compiled = ctrl->compiled;
@@ -2665,6 +2676,9 @@ static control *d_conv_control(object *obj)
 		      (Uint) 0);
     }
     ctrl->flags = header.flags;
+    if (conv_vm) {
+	ctrl->flags |= CTRL_OLDVM;
+    }
     ctrl->ninherits = header.ninherits;
     ctrl->imapsz = header.imapsz;
     ctrl->compiled = header.compiled;
@@ -2805,8 +2819,23 @@ static control *d_conv_control(object *obj)
 	if (header.nvardefs != 0) {
 	    /* variable definitions */
 	    ctrl->vardefs = ALLOC(dvardef, UCHAR(header.nvardefs));
-	    size += d_conv((char *) ctrl->vardefs, ctrl->sectors, DV_LAYOUT,
-			   (Uint) UCHAR(header.nvardefs), size);
+	    if (conv_vm) {
+		ovardef *ov;
+
+		ov = ALLOC(ovardef, ctrl->nvardefs);
+		size += d_conv((char *) ov, ctrl->sectors, OV_LAYOUT,
+			       (Uint) ctrl->nvardefs, size);
+		for (n = 0; n < ctrl->nvardefs; n++) {
+		    ctrl->vardefs[n].class = ov[n].class;
+		    ctrl->vardefs[n].type = ov[n].type;
+		    ctrl->vardefs[n].inherit = ov[n].inherit;
+		    ctrl->vardefs[n].index = ov[n].index;
+		}
+		FREE(ov);
+	    } else {
+		size += d_conv((char *) ctrl->vardefs, ctrl->sectors, DV_LAYOUT,
+			       (Uint) UCHAR(header.nvardefs), size);
+	    }
 	    if (conv_ctrl1) {
 		unsigned short type;
 
@@ -3226,11 +3255,13 @@ static dataspace *d_conv_dataspace(object *obj, Uint *counttab)
  * NAME:	data->restore_obj()
  * DESCRIPTION:	restore an object
  */
-void d_restore_obj(object *obj, Uint *counttab, uindex nobjects)
+void d_restore_obj(object *obj, Uint *counttab, uindex nobjects, bool cactive, bool dactive)
 {
     control *ctrl;
     dataspace *data;
 
+    ctrl = (control *) NULL;
+    data = (dataspace *) NULL;
     if (obj->flags & O_COMPILED) {
 	ctrl = d_new_control();
 	ctrl->oindex = obj->index;
@@ -3255,9 +3286,9 @@ void d_restore_obj(object *obj, Uint *counttab, uindex nobjects)
 	}
 	obj->ctrl = ctrl;
     }
-    
+
     /* restore dataspace block */
-    if (OBJ(obj->index)->count != 0 && OBJ(obj->index)->dfirst != SW_UNUSED) { 
+    if (OBJ(obj->index)->count != 0 && OBJ(obj->index)->dfirst != SW_UNUSED) {
 	if (!converted) {
 	    data = d_conv_dataspace(obj, counttab);
 	} else {
@@ -3270,6 +3301,39 @@ void d_restore_obj(object *obj, Uint *counttab, uindex nobjects)
 	}
 	obj->data = data;
 	d_fixdata(data, obj, counttab, nobjects);
+    }
+
+    if (!cactive) {
+	/* swap this out first */
+	if (ctrl != (control *) NULL && ctrl != ctail) {
+	    if (chead == ctrl) {
+		chead = ctrl->next;
+		chead->prev = (control *) NULL;
+	    } else {
+		ctrl->prev->next = ctrl->next;
+		ctrl->next->prev = ctrl->prev;
+	    }
+	    ctail->next = ctrl;
+	    ctrl->prev = ctail;
+	    ctrl->next = (control *) NULL;
+	    ctail = ctrl;
+	}
+    }
+    if (!dactive) {
+	/* swap this out first */
+	if (data != (dataspace *) NULL && data != dtail) {
+	    if (dhead == data) {
+		dhead = data->next;
+		dhead->prev = (dataspace *) NULL;
+	    } else {
+		data->prev->next = data->next;
+		data->next->prev = data->prev;
+	    }
+	    dtail->next = data;
+	    data->prev = dtail;
+	    data->next = (dataspace *) NULL;
+	    dtail = data;
+	}
     }
 }
 

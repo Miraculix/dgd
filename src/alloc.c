@@ -730,6 +730,9 @@ char *m_alloc(size_t size)
 	size = ALGN(sizeof(chunk), STRUCT_AL);
     }
 # endif
+    if (size > SIZE_MASK) {
+	fatal("size too big in m_alloc");
+    }
     if (slevel > 0) {
 	c = salloc(size);
 	mstat.smemused += c->size;
@@ -954,7 +957,7 @@ void m_purge()
 
 /*
  * NAME:	mem->info()
- * DESCRIPTION:	return informaton about memory usage
+ * DESCRIPTION:	return information about memory usage
  */
 allocinfo *m_info()
 {
