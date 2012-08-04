@@ -11,7 +11,7 @@
 # include "node.h"
 # include "control.h"
 # include "compile.h"
-
+# include "host/telnet.h"
 # endif
 
 /* Extras from Xyllomer */
@@ -200,5 +200,42 @@ int kf_object_list2(register frame *f)
   return 0;
 }
 # endif
+
+#ifdef GMCP_SUPPORT
+
+# ifdef FUNCDEF
+FUNCDEF("gmcp_negotiate", kf_gmcp_negotiate, pt_gmcp_negotiate,0)
+# else
+char pt_gmcp_negotiate[] = { C_TYPECHECKED | C_STATIC, 0,0,0,6,T_INT};
+
+int kf_gmcp_negotiate(register frame *f)
+{
+     static char WILL_GMCP[] =	{ (char) IAC, (char) WILL, (char) 201 };
+     object *obj;
+     string *str;
+
+     if (f->lwobj == (array *) NULL) 
+     {
+         obj = OBJR(f->oindex);
+         if (obj->count != 0) 
+         {
+             if ((obj->flags & O_SPECIAL) == O_USER) 
+             {
+                 str = str_new((char *)WILL_GMCP, sizeof( WILL_GMCP ) );
+                 comm_send( obj , str );
+                 str_del(str);
+#ifdef DEBUG               
+                 printf("Sent GCMP WILL\n");
+#endif
+             }
+         }
+     }
+     (--f->sp)->type = T_INT;
+     f->sp->u.number = 1;
+     return 0;
+}
+# endif
+
+#endif /*  GMCP_SUPPORT */
 
 /* End of Xyllomer Special */

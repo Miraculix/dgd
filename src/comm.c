@@ -602,13 +602,16 @@ int comm_send(object *obj, string *str)
 		size = 0;
 		q = outbuf;
 	    }
+#ifndef GMCP_SUPPORT
 	    if (UCHAR(*p) == IAC) {
 		/*
 		 * double the telnet IAC character
 		 */
 		*q++ = (char) IAC;
 		size++;
-	    } else if (*p == LF) {
+	    } else 
+#endif
+        if (*p == LF) {
 		/*
 		 * insert CR before LF
 		 */
@@ -1401,9 +1404,23 @@ void comm_receive(frame *f, Uint timeout, unsigned int mtime)
 			    usr->flags &= ~CF_GA;
 			    comm_write(usr, obj, (string *) NULL, will_sga,
 				       sizeof(will_sga));
-			}
-			state = TS_DATA;
-			break;
+            }
+#ifdef GMCP_SUPPORT
+            else if (UCHAR(*p) == 201) { 
+                uindex olduser;
+#ifdef DEBUG
+                printf("GOT GMCP DO\n"); 
+#endif
+                olduser = this_user;
+                this_user = obj->index;
+                if (i_call(f, obj, (array *) NULL, "gmcp_enable", 11, TRUE, 0)) {
+                    i_del_value(f->sp++);
+                }
+                this_user = olduser;
+            }
+#endif
+            state = TS_DATA;
+            break;
 
 		    case TS_DONT:
 			if (UCHAR(*p) == TELOPT_SGA) {
@@ -1420,6 +1437,7 @@ void comm_receive(frame *f, Uint timeout, unsigned int mtime)
 			    comm_write(usr, obj, (string *) NULL, mode_edit,
 				       sizeof(mode_edit));
 			}
+            
 			/* fall through */
 		    case TS_WONT:
 			state = TS_DATA;
