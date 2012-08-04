@@ -318,9 +318,6 @@
     <ClInclude Include="..\..\xfloat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\kfun\mdbm.h">
-      <Filter>Source Files\kfun</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
