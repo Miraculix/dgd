@@ -1369,6 +1369,7 @@ void comm_receive(frame *f, Uint timeout, unsigned int mtime)
 
 			case SB:
 			    state = TS_SB;
+                *q++ = *p;                
 			    break;
 
 			case IP:
@@ -1445,6 +1446,9 @@ void comm_receive(frame *f, Uint timeout, unsigned int mtime)
 
 		    case TS_SB:
 			/* skip to the end */
+#ifdef GMCP_SUPPORT
+                *q++ = *p;
+#endif
 			if (UCHAR(*p) == IAC) {
 			    state = TS_SE;
 			}
@@ -1453,6 +1457,14 @@ void comm_receive(frame *f, Uint timeout, unsigned int mtime)
 		    case TS_SE:
 			if (UCHAR(*p) == SE) {
 			    /* end of subnegotiation */
+#ifdef GMCP_SUPPORT
+                *q++ = LF;
+                nls++;
+			    newlines++;
+#ifdef DEBUG
+                printf("GOT SUBNEG\n"); 
+#endif
+#endif
 			    state = TS_DATA;
 			} else {
 			    state = TS_SB;

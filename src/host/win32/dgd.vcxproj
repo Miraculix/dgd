@@ -252,7 +252,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;YYFREE=free;YYMALLOC=malloc;;;;;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;YYFREE=free;YYMALLOC=malloc;NDEBUG;_CONSOLE;NETWORK_EXTENSIONS;CLOSURES;CO_THROTTLE=15;GMCP_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4127;4310;4244;4018;4389;4245;4702;4146;4709;4706</DisableSpecificWarnings>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
     </ClCompile>
