@@ -1415,7 +1415,7 @@ void comm_receive(frame *f, Uint timeout, unsigned int mtime)
                 olduser = this_user;
                 this_user = obj->index;
                 if (i_call(f, obj, (array *) NULL, "gmcp_enable", 11, TRUE, 0)) {
-                    i_del_value(f->sp++);
+                    
                 }
                 this_user = olduser;
             }
@@ -1446,12 +1446,14 @@ void comm_receive(frame *f, Uint timeout, unsigned int mtime)
 
 		    case TS_SB:
 			/* skip to the end */
+            if (UCHAR(*p) == IAC) {
+			    state = TS_SE;
+                break;
+			}
 #ifdef GMCP_SUPPORT
                 *q++ = *p;
 #endif
-			if (UCHAR(*p) == IAC) {
-			    state = TS_SE;
-			}
+			
 			break;
 
 		    case TS_SE:

@@ -222,6 +222,7 @@ int kf_gmcp_negotiate(register frame *f)
              if ((obj->flags & O_SPECIAL) == O_USER) 
              {
                  str = str_new((char *)WILL_GMCP, sizeof( WILL_GMCP ) );
+                 str_ref(str);
                  comm_send( obj , str );
                  str_del(str);
 #ifdef DEBUG               
