@@ -213,7 +213,7 @@
       <Optimization>Disabled</Optimization>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <PreprocessorDefinitions>WIN32;DEBUG;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;YYFREE=free;YYMALLOC=malloc;_DEBUG;_CONSOLE;NETWORK_EXTENSIONS;CLOSURES;CO_THROTTLE=50;GMCP_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;DEBUG;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;YYFREE=free;YYMALLOC=malloc;_DEBUG;_CONSOLE;NETWORK_EXTENSIONS;CO_THROTTLE=50;GMCP_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4127;4310;4244;4018;4389;4245;4702;4146;4709;4706</DisableSpecificWarnings>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
     </ClCompile>

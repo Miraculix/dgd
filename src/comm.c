@@ -939,6 +939,7 @@ static void comm_taccept(frame *f, struct _connection_ *conn, int port)
     this_user = obj->index;
     if (i_call(f, obj, (array *) NULL, "open", 4, TRUE, 0)) {
 	i_del_value(f->sp++);
+    
     }
     endthread();
     this_user = OBJ_NONE;
@@ -1245,6 +1246,7 @@ void comm_receive(frame *f, Uint timeout, unsigned int mtime)
 		this_user = obj->index;
 		if (i_call(f, obj, (array *) NULL, "open", 4, TRUE, 0)) {
 		    i_del_value(f->sp++);
+            endthread();
 		}
 		this_user=olduser;
 	    }
@@ -1415,7 +1417,8 @@ void comm_receive(frame *f, Uint timeout, unsigned int mtime)
                 olduser = this_user;
                 this_user = obj->index;
                 if (i_call(f, obj, (array *) NULL, "gmcp_enable", 11, TRUE, 0)) {
-                    
+                    i_del_value(f->sp++);
+                    endthread();
                 }
                 this_user = olduser;
             }
