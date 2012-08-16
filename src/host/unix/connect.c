@@ -1776,6 +1776,7 @@ connection *conn_openlisten(unsigned char protocol, unsigned short port)
 	conn->fd = sock;
 	conn->chain.name = (char *) NULL;
 	conn->udpbuf = (char *) NULL;
+	conn->addr = (char *) NULL;
 	sz = sizeof(sin);
 	getsockname(conn->fd, (struct sockaddr *) &sin, &sz);
 	conn->at = ntohs(sin.sin_port);
@@ -1816,6 +1817,7 @@ connection *conn_openlisten(unsigned char protocol, unsigned short port)
 	conn->fd = sock;
 	conn->chain.name = (char *) NULL;
 	conn->udpbuf = (char *) NULL;
+	conn->addr = (char *) NULL;
 	sz = sizeof(sin);
 	getsockname(conn->fd, (struct sockaddr *) &sin, &sz);
 	conn->at = ntohs(sin.sin_port);
